@@ -54,8 +54,7 @@ string_info GetStringInfo(const string_info str_info) { // Получение информации 
     // на входе имеем информацию о предыдущей строке, на выходе - информацию о текущей строке
     string_info result = str_info;
 	result.brackets = BracketChecker(result);
-	QuoteChecker(result);
-	CommentChecker(result);
+	
 	// И так далее, по мере добавления новых проверок
 
 
