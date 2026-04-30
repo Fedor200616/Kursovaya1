@@ -35,7 +35,7 @@ std::vector<string_info> CopyStringFromFile(const fs::path filePath) { //Построч
 
     std::ifstream ofile(filePath);
     if (!ofile.is_open()) {
-        std::cerr << "Error opening file: " << filePath << std::endl;
+        std::cerr << "Error opening file: " << filePath << std::endl; //TODO выводить ошибку через отдельную функцию
         return results; // Возвращаем пустой вектор в случае ошибки
     }
 
@@ -54,6 +54,9 @@ string_info GetStringInfo(const string_info str_info) { // Получение информации 
     // на входе имеем информацию о предыдущей строке, на выходе - информацию о текущей строке
     string_info result = str_info;
 	result.brackets = BracketChecker(result);
+	result.have_not_eos = NotEosChecker(result);
+	result.have_unclosedquote = UnclosedquoteChecker(result);
+	result.have_unclosed_long_comment = UnclosedlongcommentChecker(result);
 	
 	// И так далее, по мере добавления новых проверок
 
