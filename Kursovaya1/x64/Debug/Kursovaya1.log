@@ -2,5 +2,4 @@
   Main.cpp
   Reader.cpp
   Создание кода...
-Analyse.obj : error LNK2001: неразрешенный внешний символ "class std::vector<struct err_info,class std::allocator<struct err_info> > errors" (?errors@@3V?$vector@Uerr_info@@V?$allocator@Uerr_info@@@std@@@std@@A).
-C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe : fatal error LNK1120: неразрешенных внешних элементов: 1
+  Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe

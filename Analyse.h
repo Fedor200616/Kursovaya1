@@ -1,26 +1,23 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include "main.h"
+#include "PrintErr.h"
 
 #ifndef ANALYSE_H
 #define ANALYSE_H
 
-const char open_brackets[] = "({[";
-const char close_brackets[] = ")}]";
-const char brackets[] = "({[<)}]>";
-const char quotes[] = "\"\'";
-const char comment = '/';
-const char long_comment = '*';
-const char long_comment_end[] = "*/";
-const char eos = ';';
-
+inline const char quotes[] = "\"\'";
+inline const char comment = '/';
+inline const char long_comment = '*';
+inline const char long_comment_end[] = "*/";
 
 /// <summary>
-/// Основная функция проверки строки
+/// Функция анализа строки файла
 /// </summary>
-/// <param name="str_info"></param>
-/// <returns></returns>
-string_info analyse(string_info& str_info);
+/// <param name="prev">Строка перед анализируемой, дает контекст для анализа</param>
+/// <param name="str_info">строка, которую анализируем</param>
+void analyse(const string_info& prev, string_info& str_info);
 
 /// <summary>
 /// Проверка скобок
@@ -30,26 +27,33 @@ string_info analyse(string_info& str_info);
 void BracketChecker(string_info& str_info, const char bracket);
 
 /// <summary>
+/// Копирует нужные в str_info параметры из prev
+/// </summary>
+/// <param name="prev">предыдущая строка(для копирования)</param>
+/// <param name="str_info">строка для вставки</param>
+void recent(const string_info& prev, string_info& str_info); //не копирует номер строки,
+
+/// <summary>
 /// проверка на комментарии
 /// </summary>
 /// <param name="first">Первый символ на проверку</param>
 /// <param name="second">Второй символ на проверке</param>
 /// <returns>0 - нет коммента; 1 - однострочечный коммент; 2 - многострочечный коммент</returns>
-int CommentChecker(char first, char second);
+inline int CommentChecker(char first, char second);
 
 /// <summary>
 /// Проверка на кавычки.
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
 /// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
-bool IsQuote(char ch);
+inline bool IsQuote(char ch);
 
 /// <summary>
 /// Проверка на любой тип скобок.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - скобка - true, иначе false</returns>
-bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
+inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 
 //==================================================================================================
 //==================================================================================================
@@ -60,21 +64,21 @@ bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
 /// <returns>Если символ является открытой скобкой, то возвращает true, иначе false.</returns>
-bool IsOpenBracket(char ch);
+inline bool IsOpenBracket(char ch);
 
 /// <summary>
 /// Проверка на закрытые скобки.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - закрытая скобка - true, иначе false</returns>
-bool IsCloseBracket(char ch);
+inline bool IsCloseBracket(char ch);
 
 /// <summary>
 /// Проверка на любой тип скобок.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - скобка - true, иначе false</returns>
-bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
+inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 
 /// <summary>
 /// Функция проверки что две скобки одного вида
@@ -82,14 +86,14 @@ bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 /// <param name="open">открывающаяся скобка</param>
 /// <param name="close">закрывающаяся скобка</param>
 /// <returns>1 - ели одного вида, 0 - иначе</returns>
-bool BracketCompare(char open, char close);
+inline bool BracketCompare(char open, char close);
 
 /// <summary>
 /// Проверка на кавычки.
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
 /// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
-bool IsQuote(char ch);
+inline bool IsQuote(char ch);
 
 
 #endif // ANALYSE_H

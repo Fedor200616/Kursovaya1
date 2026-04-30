@@ -2,8 +2,8 @@
 #include "Analyse.h"
 #include "PrintErr.h"
 
-string_info analyse(const string_info& prev) {
-    string_info str_info = prev;
+void analyse(const string_info& prev, string_info& str_info) {
+    recent(prev, str_info);
     enum class State {
         Normal,
         InQuote,
@@ -36,7 +36,7 @@ string_info analyse(const string_info& prev) {
             else if (comment_type == 1) {//Проверка на обычный коммент
                 state = State::InLineComment;
                 str_info.have_comment = comment_type;
-                break;
+                return;
             }
             if (IsQuote(ch)) { // Кавычки
                 state = State::InQuote;
@@ -74,8 +74,6 @@ string_info analyse(const string_info& prev) {
         str_info.have_unclosedquote = 1;
     else
         str_info.have_unclosedquote = 0;
-
-    return str_info;
 }
 
 void BracketChecker(string_info& str_info, const char bracket){
@@ -100,7 +98,12 @@ void BracketChecker(string_info& str_info, const char bracket){
     }
 }
 
-int CommentChecker(char first, char second) {
+void recent(const string_info& prev, string_info& str_info) {
+    str_info.brackets = prev.brackets;
+    str_info.have_unclosed_long_comment = prev.have_unclosed_long_comment;
+}
+
+inline int CommentChecker(char first, char second) {
     if (first != comment) return 0;
 
     if (second == comment) return 1;      // //
@@ -109,33 +112,26 @@ int CommentChecker(char first, char second) {
     return 0;
 }
 
-bool IsQuote(char ch) {
+inline bool IsQuote(char ch) {
     if (ch == '\'' || ch == '\"') return true;
     else return false;
 }
 
-bool IsOpenBracket(char ch) {
-    for (auto& b : open_brackets) {
-        if (ch == b) return true;
-    }
-    return false;
+inline bool IsOpenBracket(char ch) {
+        return ch == '(' || ch == '[' || ch == '{';
 }
 
-bool IsCloseBracket(char ch) {
-    for (auto& b : close_brackets) {
-        if (ch == b) return true;
-    }
-    return false;
+inline bool IsCloseBracket(char ch) {
+    return ch == ')' ||ch == ']' || ch == '}';
 }
 
-bool IsBracket(char ch) {
-    for (auto &b : brackets) {
-        if (ch == b) return true;
-    }
-    return false;
+inline bool IsBracket(char ch) {
+    return ch == '(' || ch == ')' ||
+        ch == '[' || ch == ']' ||
+        ch == '{' || ch == '}';
 }
 
-bool BracketCompare(char open, char close) {
+inline bool BracketCompare(char open, char close) {
     return (open == '(' && close == ')') ||
         (open == '[' && close == ']') ||
         (open == '{' && close == '}');

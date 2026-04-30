@@ -30,7 +30,7 @@ fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводн
     }
 }
 
-std::vector<string_info> CopyStringFromFile(const fs::path filePath) { //Построчечное считываение файла в вектор
+std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Построчечное считываение файла в вектор
     std::vector<string_info> results;
 
     std::ifstream ofile(filePath);
@@ -40,11 +40,21 @@ std::vector<string_info> CopyStringFromFile(const fs::path filePath) { //Построч
     }
 
     std::string line;
-    results.push_back({ 0, "", "", 0, 0, 0 }); // Инициализируем нулевую строку для хранения информации о предыдущей строке
+    results.push_back(empty_str_info); // Инициализируем нулевую строку для хранения информации о предыдущей строке
     for (int i = 1; std::getline(ofile, line); i++) {
         results.push_back(empty_str_info);
+        results.back().line = i;
+        results.back().str = line;
     }
     return results;
 }
 
+std::vector<err_info> errors;
+
+int AnaliseIterator(std::vector<string_info>& info) {
+    for (int i = 1; i < info.size(); i++) {
+        analyse(info[i - 1], info[i]);
+    }
+    return 0;
+}
 
