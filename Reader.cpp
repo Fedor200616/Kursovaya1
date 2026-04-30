@@ -44,19 +44,7 @@ std::vector<string_info> CopyStringFromFile(const fs::path filePath) { //Построч
     for (int i = 1; std::getline(ofile, line); i++) {
         results.push_back(empty_str_info);
     }
-
-
-
     return results;
 }
 
-string_info GetStringInfo(const string_info str_info) { // Получение информации о передыдущей строке строке
-    // на входе имеем информацию о предыдущей строке, на выходе - информацию о текущей строке
-    string_info result = str_info;
-    result = analyse(str_info);
-	
-	// И так далее, по мере добавления новых проверок
 
-
-    return result; // информация о текущей строке
-}

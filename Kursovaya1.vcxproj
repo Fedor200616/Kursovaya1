@@ -129,12 +129,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Analyse.cpp" />
+    <ClCompile Include="Chrono.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PrintErr.cpp" />
     <ClCompile Include="Reader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Analyse.h" />
+    <ClInclude Include="Chrono.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="PrintErr.h" />
     <ClInclude Include="Reader.h" />
