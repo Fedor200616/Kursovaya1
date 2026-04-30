@@ -50,16 +50,13 @@ std::vector<string_info> CopyStringFromFile(const fs::path filePath) { //Построч
     return results;
 }
 
-string_info GetStringInfo(const string_info str_info) { // Получение информации о строке
+string_info GetStringInfo(const string_info str_info) { // Получение информации о передыдущей строке строке
     // на входе имеем информацию о предыдущей строке, на выходе - информацию о текущей строке
     string_info result = str_info;
-	result.brackets = BracketChecker(result);
-	result.have_not_eos = NotEosChecker(result);
-	result.have_unclosedquote = UnclosedquoteChecker(result);
-	result.have_unclosed_long_comment = UnclosedlongcommentChecker(result);
+    result = analyse(str_info);
 	
 	// И так далее, по мере добавления новых проверок
 
 
-    return result;
+    return result; // информация о текущей строке
 }

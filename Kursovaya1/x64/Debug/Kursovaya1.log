@@ -1,2 +1,16 @@
-﻿  Reader.cpp
-  Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe
+﻿  Main.cpp
+  PrintErr.cpp
+  Reader.cpp
+  Создание кода...
+Analyse.obj : error LNK2019: ссылка на неразрешенный внешний символ "bool __cdecl IsOpenBracket(char)" (?IsOpenBracket@@YA_ND@Z) в функции "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info const &)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUstring_info@@@Z).
+Analyse.obj : error LNK2019: ссылка на неразрешенный внешний символ "bool __cdecl IsCloseBracket(char)" (?IsCloseBracket@@YA_ND@Z) в функции "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info const &)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUstring_info@@@Z).
+Analyse.obj : error LNK2019: ссылка на неразрешенный внешний символ "char __cdecl IsBracketPair(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,char)" (?IsBracketPair@@YADV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@D@Z) в функции "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info const &)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUstring_info@@@Z).
+Analyse.obj : error LNK2019: ссылка на неразрешенный внешний символ "bool __cdecl IsQuote(char)" (?IsQuote@@YA_ND@Z) в функции "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info const &)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUstring_info@@@Z).
+Analyse.obj : error LNK2001: неразрешенный внешний символ "class std::vector<struct err_info,class std::allocator<struct err_info> > errors" (?errors@@3V?$vector@Uerr_info@@V?$allocator@Uerr_info@@@std@@@std@@A).
+Reader.obj : error LNK2019: ссылка на неразрешенный внешний символ "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@Ustring_info@@@Z) в функции "struct string_info __cdecl GetStringInfo(struct string_info)" (?GetStringInfo@@YA?AUstring_info@@U1@@Z).
+    Указание на символы, которые определены и могут подойти:
+      "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl BracketChecker(struct string_info const &)" (?BracketChecker@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUstring_info@@@Z)
+Reader.obj : error LNK2019: ссылка на неразрешенный внешний символ "int __cdecl UnclosedquoteChecker(struct string_info)" (?UnclosedquoteChecker@@YAHUstring_info@@@Z) в функции "struct string_info __cdecl GetStringInfo(struct string_info)" (?GetStringInfo@@YA?AUstring_info@@U1@@Z).
+Reader.obj : error LNK2019: ссылка на неразрешенный внешний символ "int __cdecl UnclosedlongcommentChecker(struct string_info)" (?UnclosedlongcommentChecker@@YAHUstring_info@@@Z) в функции "struct string_info __cdecl GetStringInfo(struct string_info)" (?GetStringInfo@@YA?AUstring_info@@U1@@Z).
+Reader.obj : error LNK2019: ссылка на неразрешенный внешний символ "int __cdecl NotEosChecker(struct string_info)" (?NotEosChecker@@YAHUstring_info@@@Z) в функции "struct string_info __cdecl GetStringInfo(struct string_info)" (?GetStringInfo@@YA?AUstring_info@@U1@@Z).
+C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe : fatal error LNK1120: неразрешенных внешних элементов: 9

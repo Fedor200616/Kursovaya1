@@ -10,13 +10,16 @@
 struct err_info
 {
 	enum class err_type {
-		UNCLOSED_BRACKET = 0,
-		UNCLOSED_QUOTE = 1,
-		UNCLOSED_LONG_COMMENT = 2,
-		NOT_EOS = 3
+        MISSING_CLOSE_BRACKET,
+		UNCLOSED_BRACKET,
+		UNCLOSED_QUOTE,
+		UNCLOSED_LONG_COMMENT,
+		NOT_EOS,
+        CLOSE_BRAKET_FIRST
 	};
 
 	int line;
+    char simbol;
 	err_type type;
 
     static std::string message(err_type error)
@@ -31,6 +34,8 @@ struct err_info
             return "Unclosed long comment error";
         case err_type::NOT_EOS:
             return "Not end of statement error";
+        case err_type::CLOSE_BRAKET_FIRST:
+            return "Найдена закрывающаяся скобка без открытых";
         default:
             return "Unknown error";
         }

@@ -8,17 +8,25 @@
 const char open_brackets[] = "({[<";
 const char close_brackets[] = ")}]>";
 const char quotes[] = "\"\'";
-const char comment[] = "/";
+const char comment = '/';
 const char long_comment[] = "/*";
 const char long_comment_end[] = "*/";
-const char eos[] = ";";
+const char eos = ';';
+
+
+/// <summary>
+/// Основная функция проверки строки
+/// </summary>
+/// <param name="str_info"></param>
+/// <returns></returns>
+string_info analyse(string_info& str_info);
 
 /// <summary>
 /// Анализатор скобок в скроке
 /// </summary>
 /// <param name="str_info">Инофрмацию о строке для изменения</param>
 /// <returns>ХЗ</returns>
-std::string BracketChecker(const string_info str_info); // Мы это испоьзуем поолсе проверок посимвольно
+std::string BracketChecker(const string_info& str_info); // Мы это испоьзуем поолсе проверок посимвольно
 
 /// <summary>
 /// Проверка на незакрытые ковычки.
@@ -42,11 +50,12 @@ int UnclosedlongcommentChecker(const string_info str_info);
 int NotEosChecker(const string_info str_info);
 
 /// <summary>
-/// Проверка строки на наличие в строке каких-либо комментариев
+/// проверка на комментарии
 /// </summary>
-/// <param name="str_info">информация о строке</param>
-/// <returns></returns>
-bool CommentChecker(const string_info str_info);
+/// <param name="first">Первый символ на проверку</param>
+/// <param name="second">Второй символ на проверке</param>
+/// <returns>0 - нет коммента; 1 - однострочечный коммент; 2 - многострочечный коммент</returns>
+int CommentChecker(const char first, const char second);
 
 //==================================================================================================
 //==================================================================================================
@@ -74,6 +83,14 @@ bool IsCloseBracket(char ch);
 bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 
 /// <summary>
+/// Функция проверки что две скобки одного вида
+/// </summary>
+/// <param name="open">открывающаяся скобка</param>
+/// <param name="close">закрывающаяся скобка</param>
+/// <returns>1 - ели одного вида, 0 - иначе</returns>
+bool BracketCompare(char open, char close);
+
+/// <summary>
 /// Проверка на кавычки.
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
@@ -84,8 +101,9 @@ bool IsQuote(char ch);
 /// Проверка на комментарий.
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
+/// <param name="next">2 символ на проверке</param>
 /// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
-bool IsComment(char ch);
+bool IsComment(char ch, char next);
 
 
 #endif // ANALYSE_H

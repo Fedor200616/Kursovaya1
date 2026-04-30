@@ -10,7 +10,7 @@ int main()
 	std::cout << "Selected file path: " << filePath << std::endl;
 	std::vector<string_info> fileLines = CopyStringFromFile(filePath);
 	for (int i = 0; i < fileLines.size(); i++) {
-		std::cout << "Line " << fileLines[i].str_num << ": " << fileLines[i].str << std::endl;
+		std::cout << "Line " << fileLines[i].line << ": " << fileLines[i].str << std::endl;
 	}
     return 0;
 }
