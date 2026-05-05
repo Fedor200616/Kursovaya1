@@ -1,4 +1,3 @@
-#pragma once
 #include <chrono>
 #include <iostream>
 
@@ -9,8 +8,10 @@
 /// Функция запуска таймера
 /// </summary>
 /// <returns>точку времени (timestamp) типа std::chrono::high_resolution_clock::time_point</returns>
-auto crono();
+std::chrono::steady_clock::time_point chrono();
 
-double chrono_diff(auto start, auto end);
+inline double chrono_diff(auto start, auto end) {
+    return std::chrono::duration<double>(end - start).count();
+}
 
 #endif // CHRONO_H

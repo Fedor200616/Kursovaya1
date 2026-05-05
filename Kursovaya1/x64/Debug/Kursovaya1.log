@@ -1,5 +1,3 @@
 ﻿  Analyse.cpp
-  Main.cpp
-  Reader.cpp
-  Создание кода...
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(152,16): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe

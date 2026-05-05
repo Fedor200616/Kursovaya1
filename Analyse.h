@@ -95,5 +95,11 @@ inline bool BracketCompare(char open, char close);
 /// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
 inline bool IsQuote(char ch);
 
+/// <summary>
+/// Ищет строку и скобку в которой допущена ошибка
+/// </summary>
+/// <param name="file">сылка на вектор</param>
+/// <returns>при нормальной работе - информацию об ошибке со скобкой</returns>
+err_info find_open_bracket(const std::vector<string_info>& file);
 
 #endif // ANALYSE_H

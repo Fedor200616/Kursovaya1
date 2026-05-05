@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
 #ifndef MAIN_H
 #define MAIN_H
@@ -29,6 +30,7 @@ struct string_info {
 
 const string_info empty_str_info{};
 
+extern std::vector<string_info> fileLines;
 
 #endif
 

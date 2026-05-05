@@ -1,5 +1,5 @@
 #include "Chrono.h"
 
-auto crono() {
+std::chrono::steady_clock::time_point chrono() {
 	return std::chrono::high_resolution_clock::now();
 }

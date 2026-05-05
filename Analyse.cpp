@@ -71,7 +71,17 @@ void analyse(const string_info& prev, string_info& str_info) {
         }
     }
     if (state == State::InQuote)
-        str_info.have_unclosedquote = 1;
+        switch (quote_char)
+        {
+        case '\'':
+            str_info.have_unclosedquote = 1;
+            break;
+        case '\"':
+            str_info.have_unclosedquote = 2;
+            break;
+        default:
+            break;
+        }
     else
         str_info.have_unclosedquote = 0;
 }
@@ -83,18 +93,25 @@ void BracketChecker(string_info& str_info, const char bracket){
     }
     else if (IsCloseBracket(bracket)) {
         if (result.empty()) {
-            errors.push_back({ str_info.line, bracket, err_info::err_type::CLOSE_BRAKET_FIRST});
+            errors.push_back({str_info.line, bracket, err_info::err_type::CLOSE_BRAKET_FIRST}); // Если есть закрывающая скобка без открывающей
             return;
         }
 
         char last_bracket = result.back();
 
-        if (BracketCompare(last_bracket, bracket)) {
-            result.pop_back(); //Массив не может быть пустым из-за проверки в началае
-        }
-        else{
-            errors.push_back({ str_info.line, bracket, err_info::err_type::MISSING_CLOSE_BRACKET });
-        }
+       while (!result.empty())
+       {
+            char last = result.back();
+
+            if (BracketCompare(last, bracket)) {
+                result.pop_back();
+                return;
+            }
+
+       errors.push_back({ str_info.line, last, err_info::err_type::MISSING_CLOSE_BRACKET });
+       result.pop_back();
+       }
+            //errors.push_back({ str_info.line, bracket, err_info::err_type::CLOSE_BRAKET_FIRST });
     }
 }
 

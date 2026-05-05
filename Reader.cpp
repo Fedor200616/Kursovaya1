@@ -2,6 +2,7 @@
 #include "Main.h"
 #include "Reader.h"
 #include "Analyse.h"
+#include "Chrono.h"
 
 fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводник
     wchar_t filename[MAX_PATH];
@@ -13,7 +14,7 @@ fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводн
 
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrFilter = L"Text Files\0*.cpp\0*.*\0";  //фильтруем на текстовые
+    ofn.lpstrFilter = L"C++\0*.cpp;*.c\0Headers\0*.h";  //фильтруем на cpp
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle = L"Выберите файл";  //заголовок
@@ -32,7 +33,6 @@ fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводн
 
 std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Построчечное считываение файла в вектор
     std::vector<string_info> results;
-
     std::ifstream ofile(filePath);
     if (!ofile.is_open()) {
         std::cerr << "Error opening file: " << filePath << std::endl; //TODO выводить ошибку через отдельную функцию
@@ -52,9 +52,12 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
 std::vector<err_info> errors;
 
 int AnaliseIterator(std::vector<string_info>& info) {
+    auto start = chrono();
     for (int i = 1; i < info.size(); i++) {
         analyse(info[i - 1], info[i]);
     }
+    auto end = chrono();
+    std::cout << chrono_diff(start, end) << '\n';
     return 0;
 }
 

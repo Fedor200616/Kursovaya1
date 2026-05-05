@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <vector>
+#include <string>
 
 #ifndef PRINTERR_H
 #define PRINTERR_H
@@ -15,17 +16,22 @@ struct err_info
 		UNCLOSED_QUOTE,
 		UNCLOSED_LONG_COMMENT,
 		NOT_EOS,
-        CLOSE_BRAKET_FIRST
+        CLOSE_BRAKET_FIRST,
+        FILE_IS_EMPTY,
+        UNDEFINE_ERROR
 	};
 
 	int line;
-    char simbol;
+    char symbol;
 	err_type type;
+
 
     static std::string message(err_type error)
     {
         switch (error)
         {
+        case err_type::MISSING_CLOSE_BRACKET:
+             return "Найдена незакрытая скобка";
         case err_type::UNCLOSED_BRACKET:
             return "Unclosed bracket error";
         case err_type::UNCLOSED_QUOTE:
@@ -36,13 +42,25 @@ struct err_info
             return "Not end of statement error";
         case err_type::CLOSE_BRAKET_FIRST:
             return "Найдена закрывающаяся скобка без открытых";
+            
         default:
-            return "Unknown error";
+            return std::to_string(static_cast<int>(error));
         }
     }
 };
 
 extern std::vector<err_info> errors;
 
+/// <summary>
+/// Функция печати ошибок
+/// </summary>
+/// <returns></returns>
+int print_error();
+
+/// <summary>
+/// Функция обавления незакрытых кавычек в массив ошибок
+/// </summary>
+/// <param name="result">массив информации о файле</param>
+void find_quote_err(const std::vector<string_info>& result);
 
 #endif
