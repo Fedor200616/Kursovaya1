@@ -77,15 +77,21 @@ void analyse(const string_info& prev, string_info& str_info) {
         {
         case '\'':
             str_info.have_unclosedquote = 1;
+            errors.push_back({ str_info.line, '\'', err_info::err_type::UNCLOSED_QUOTE});
             break;
         case '\"':
             str_info.have_unclosedquote = 2;
+            errors.push_back({ str_info.line, '\"', err_info::err_type::UNCLOSED_QUOTE});
             break;
         default:
             break;
         }
     else
         str_info.have_unclosedquote = 0;
+
+    if (str_info.line == fileLines.back().line)
+        if(state == State::InLongComment)
+            errors.push_back({ str_info.line, ' ', err_info::err_type::UNCLOSED_LONG_COMMENT});
 }
 
 void BracketChecker(string_info& str_info, const char bracket) {
@@ -173,7 +179,7 @@ std::vector<int> CommPercent(const std::vector<string_info>& Info, const int ref
     for (int i = 0; i < Info.size() / interval; i++) {
         int count = 0;
         for (int j = (interval * i) + 1; j <= interval * (i + 1) && j < Info.size(); j++) {
-            if (j == 0);
+            //if (j == 0);
             if (Info[j].have_comment != 0)
                 count++;
         }

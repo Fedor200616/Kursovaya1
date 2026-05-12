@@ -33,14 +33,10 @@ struct err_info
         {
         case err_type::MISSING_CLOSE_BRACKET:
              return "Найдена незакрытая скобка";
-        case err_type::UNCLOSED_BRACKET:
-            return "Unclosed bracket error";
         case err_type::UNCLOSED_QUOTE:
-            return "Unclosed quote error";
+            return "Кавычки не закрыты в данной строке";
         case err_type::UNCLOSED_LONG_COMMENT:
-            return "Unclosed long comment error";
-        case err_type::NOT_EOS:
-            return "Not end of statement error";
+            return "Длинный комментарий не имеет конца";
         case err_type::CLOSE_BRAKET_FIRST:
             return "Найдена закрывающаяся скобка без открытых";
             
