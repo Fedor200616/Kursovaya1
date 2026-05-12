@@ -1,10 +1,9 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "Main.h"
 #include "Reader.h"
 #include "Analyse.h"
 #include "Chrono.h"
 
-fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводник
+std::optional<fs::path> OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводник
     wchar_t filename[MAX_PATH];
     fs::path root = fs::current_path().root_directory();
 
@@ -27,7 +26,7 @@ fs::path OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводн
     }
     else {
         std::wcout << L"You cancelled.\n";
-        return "0";
+        return std::nullopt;
     }
 }
 

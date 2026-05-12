@@ -96,10 +96,28 @@ inline bool BracketCompare(char open, char close);
 inline bool IsQuote(char ch);
 
 /// <summary>
-/// Ищет строку и скобку в которой допущена ошибка
+/// Первая проверка ошибки закрытой скобки: на наличие подобной открытой в буфере
 /// </summary>
-/// <param name="file">сылка на вектор</param>
-/// <returns>при нормальной работе - информацию об ошибке со скобкой</returns>
-err_info find_open_bracket(const std::vector<string_info>& file);
+/// <param name="bracket_buff">Буфер скобок из strin_info</param>
+/// <param name="close">Скобка, которую проверяем</param>
+/// <returns>1 - если в сткроке есть подобная открывающаяся скобка, ноль, если не было открытых скобок такого типа до этого</returns>
+inline bool HaveSimOpenBrack(const std::string& bracket_buff, const char close);
+
+/// <summary>
+/// Находим строку с открытой скобкой, которая не была закрыта
+/// </summary>
+/// <param name="str_info">информация о строке, в которой найдена некорректная закрытая скобка</param>
+/// <param name="Lines">информация о всем файле, в данной программе выставляется по умолчание на глобальную переменную</param>
+/// <returns></returns>
+err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<string_info>& Lines = fileLines);
+
+/// <summary>
+/// Находит строки, с процентов комментов ниже заданного
+/// </summary>
+/// <param name="Info">Информация о строках</param>
+/// <param name="ref_percent">Заданный процент коментариев</param>
+/// <param name="interval">Интервал, внутри которого осуществялются проверки</param>
+/// <returns>массив чисел - нумера интервалов</returns>
+std::vector<int> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval);
 
 #endif // ANALYSE_H

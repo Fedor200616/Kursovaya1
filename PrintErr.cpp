@@ -24,3 +24,4 @@ void find_quote_err(const std::vector<string_info>& result) {
 		}
 	}
 }
+

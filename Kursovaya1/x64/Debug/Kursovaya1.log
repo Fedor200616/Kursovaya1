@@ -1,3 +1,17 @@
-﻿  Analyse.cpp
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(152,16): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+﻿  User.cpp
+C:\Users\I\source\repos\Kursovaya1\User.cpp(141,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+      C:\Users\I\source\repos\Kursovaya1\User.cpp(141,15):
+      контекст создания экземпляра шаблона (сначала самый старый)
+          C:\Users\I\source\repos\Kursovaya1\User.cpp(43,3):
+          выполняется компиляция ссылки на экземпляр шаблон функции "void ReturnResult<std::vector<string_info,std::allocator<string_info>>>(const _T0 &,const std::vector<err_info,std::allocator<err_info>> &,const int,const int)"
+          with
+          [
+              _T0=std::vector<string_info,std::allocator<string_info>>
+          ]
+  
+C:\Users\I\source\repos\Kursovaya1\User.cpp(175,63): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\I\source\repos\Kursovaya1\User.cpp(186,63): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\I\source\repos\Kursovaya1\User.cpp(198,59): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\I\source\repos\Kursovaya1\User.cpp(104,1): warning C4715: GetUserInfo: значение возвращается не при всех путях выполнения
+C:\Users\I\source\repos\Kursovaya1\User.cpp(137,1): warning C4715: GetUserOpinion: значение возвращается не при всех путях выполнения
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\x64\Debug\Kursovaya1.exe

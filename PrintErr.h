@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "main.h"
 
 #ifndef PRINTERR_H
 #define PRINTERR_H
@@ -62,5 +63,7 @@ int print_error();
 /// </summary>
 /// <param name="result">массив информации о файле</param>
 void find_quote_err(const std::vector<string_info>& result);
+
+
 
 #endif
