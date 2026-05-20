@@ -42,7 +42,7 @@ void analyse(const string_info& prev, string_info& str_info) {
             else if (comment_type == 1) {//Проверка на обычный коммент
                 state = State::InLineComment;
                 str_info.have_comment = comment_type;
-                return;
+                break;
             }
             if (IsQuote(ch)) { // Кавычки
                 state = State::InQuote;
@@ -66,6 +66,7 @@ void analyse(const string_info& prev, string_info& str_info) {
             break;
 
         case State::InLongComment:
+            str_info.have_comment = 2;
             if (ch == long_comment_end[0] && next == long_comment_end[1]) {
                 state = State::Normal;
                 i++;
