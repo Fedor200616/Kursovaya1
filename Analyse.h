@@ -118,6 +118,18 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
 /// <param name="ref_percent">Заданный процент коментариев</param>
 /// <param name="interval">Интервал, внутри которого осуществялются проверки</param>
 /// <returns>массив чисел - нумера интервалов</returns>
-std::vector<int> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval);
+std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval);
+
+/// <summary>
+/// Находит ошибку если есть открытые скобки перед функцией
+/// </summary>
+/// <param name="str_info">информация о строке</param>
+void FindBrackBeforeVoid(string_info& str_info);
+
+/// <summary>
+/// Нахождение незакрытых скобок в конце
+/// </summary>
+/// <param name="info">информация о строках</param>
+void FindEndBrackets(const std::vector<string_info>& info);
 
 #endif // ANALYSE_H

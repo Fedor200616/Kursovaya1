@@ -1,27 +1,31 @@
 #include "PrintErr.h"
+#include "User.h"
 #include "Main.h"
 
-int print_error() {
-	for (auto err : errors) {
-		std::cout << err.line << ' ' << err.message(err.type) << ' ' << err.symbol << '\n';
+int print_error(const std::vector<err_info>& errors) {
+	system("cls");
+	int err_size = errors.size();
+	std::cout << "Найдено ошибок:" << ' ' << err_size << '\n';
+	for (auto& err : errors) {
+		std::cout << "Строка номер " << err.line << ", Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n';
 		std::cout << fileLines[err.line].str << '\n';
 	}
-
+	std::cout << "Для продолжения нажмите любую кнопку.";
+	_getch();
 	return 0;
 }
 
-void find_quote_err(const std::vector<string_info>& result) {
-	for (const auto &res : result) {
-		switch (res.have_unclosedquote){
-			case 1:
-				errors.push_back({ res.line, '\'', err_info::err_type::UNCLOSED_QUOTE });
-				break;
-			case 2:
-				errors.push_back({ res.line, '\"', err_info::err_type::UNCLOSED_QUOTE });
-				break;
-			default:
-				break;
-		}
-	}
-}
+int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
+	system("cls");
+	for (size_t i = 0; i < comm_vec.size(); i++) {
+		int start = comm_vec[i].interval * interval_size + 1;
+		int end = std::min(start + interval_size - 1, fileinfosize);
 
+		std::cout << "Интервал: " << comm_vec[i].interval << ". Строки с " << start << ", по " << end
+			<< " Процент комментариев: " << comm_vec[i].percent << "%" << '\n';
+
+	}
+	std::cout << "Для продолжения нажмите любую кнопку.";
+	_getch();
+	return 0;
+}

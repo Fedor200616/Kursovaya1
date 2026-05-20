@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <conio.h>
 #include "main.h"
 
 #ifndef PRINTERR_H
@@ -32,6 +33,7 @@ struct err_info
         switch (error)
         {
         case err_type::MISSING_CLOSE_BRACKET:
+        case err_type::UNCLOSED_BRACKET:
              return "Найдена незакрытая скобка";
         case err_type::UNCLOSED_QUOTE:
             return "Кавычки не закрыты в данной строке";
@@ -48,18 +50,26 @@ struct err_info
 
 extern std::vector<err_info> errors;
 
+struct comm_percent {
+    int interval;
+    int percent;
+};
+
 /// <summary>
 /// Функция печати ошибок
 /// </summary>
-/// <returns></returns>
-int print_error();
+/// <param name="errors">Массив ошибок типа err_info</param>
+/// <returns>0</returns>
+int print_error(const std::vector<err_info>& errors = ::errors);
 
 /// <summary>
-/// Функция обавления незакрытых кавычек в массив ошибок
+/// Выводит на экран интервалы с малым количеством комментариев
 /// </summary>
-/// <param name="result">массив информации о файле</param>
-void find_quote_err(const std::vector<string_info>& result);
-
+/// <param name="intervals">массив интервалов для вывода</param>
+/// <param name="interval_size">размер интервала</param>
+/// <param name="fileinfosize">длина файла</param>
+/// <returns>0</returns>
+int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize);
 
 
 #endif

@@ -51,12 +51,12 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
 std::vector<err_info> errors;
 
 int AnaliseIterator(std::vector<string_info>& info) {
-    auto start = chrono();
     for (int i = 1; i < info.size(); i++) {
         analyse(info[i - 1], info[i]);
     }
-    auto end = chrono();
-    std::cout << chrono_diff(start, end) << '\n';
+    if (!info.back().brackets.empty()) {
+        FindEndBrackets(info);
+    }
     return 0;
 }
 

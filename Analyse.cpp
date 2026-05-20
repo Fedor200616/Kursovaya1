@@ -3,6 +3,7 @@
 #include "PrintErr.h"
 
 void analyse(const string_info& prev, string_info& str_info) {
+    
     recent(prev, str_info);
     enum class State {
         Normal,
@@ -17,6 +18,9 @@ void analyse(const string_info& prev, string_info& str_info) {
     else
         str_info.have_comment = 0;
     char quote_char = 0;
+
+    if (state == State::Normal)
+        FindBrackBeforeVoid(str_info);
 
     for (size_t i = 0; i < str_info.str.size(); i++)
     {
@@ -92,9 +96,11 @@ void analyse(const string_info& prev, string_info& str_info) {
     if (str_info.line == fileLines.back().line)
         if(state == State::InLongComment)
             errors.push_back({ str_info.line, ' ', err_info::err_type::UNCLOSED_LONG_COMMENT});
+    
 }
 
 void BracketChecker(string_info& str_info, const char bracket) {
+    int line = str_info.line;
     std::string& result = str_info.brackets;
     if (IsOpenBracket(bracket)) {
         result += bracket;
@@ -174,8 +180,8 @@ inline bool HaveSimOpenBrack(const std::string& bracket_buff, const char close) 
     return false; 
 }
 
-std::vector<int> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval) {
-    std::vector<int> not_comp_inter;
+std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval) {
+    std::vector<comm_percent> not_comp_inter;
     for (int i = 0; i < Info.size() / interval; i++) {
         int count = 0;
         for (int j = (interval * i) + 1; j <= interval * (i + 1) && j < Info.size(); j++) {
@@ -186,7 +192,7 @@ std::vector<int> CommPercent(const std::vector<string_info>& Info, const int ref
         int real_size = std::min(interval, (int)Info.size() - i * interval);
         int percent = count * 100 / real_size;
         if (percent < ref_percent) {
-            not_comp_inter.push_back(i);
+            not_comp_inter.push_back({i, percent});
         }
     }
     return not_comp_inter;
@@ -202,4 +208,39 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
                 return { Lines[i].line, Lines[i].brackets.back(), err_info::err_type::UNCLOSED_BRACKET };
     }
     return { str_info.line, str_info.brackets.back(), err_info::err_type::UNCLOSED_BRACKET };
+}
+
+void FindBrackBeforeVoid(string_info& str_info) { 
+    auto pos = str_info.str.find("void");
+
+    bool is_void = false;
+
+    if (pos != std::string::npos) {
+        bool left_ok = (pos == 0 || !isalnum(str_info.str[pos - 1]));
+        bool right_ok = (pos + 4 >= str_info.str.size() || !isalnum(str_info.str[pos + 4]));
+
+        is_void = left_ok && right_ok;
+    }
+
+    if (is_void && !str_info.brackets.empty()) {
+        errors.push_back({
+            str_info.line - 1,
+            str_info.brackets.back(),
+            err_info::err_type::MISSING_CLOSE_BRACKET
+            });
+
+        str_info.brackets.clear();
+    }
+}
+
+void FindEndBrackets(const std::vector<string_info>& info) { 
+    if (info.back().brackets.empty())
+        return;
+    int line = info.back().line;
+    do {
+        const string_info& last_str = info[line];
+        errors.push_back(FindErrUnCloseBrack(last_str, info));
+        line = errors.back().line-1;
+
+    } while (!info[line].brackets.empty());
 }

@@ -5,11 +5,13 @@
 #include "PrintErr.h"
 #include "Analyse.h"
 
-
+Settings setting;
 int main_func() {
 	int file_choose = 1;
 	while (file_choose == 1) {
 		system("cls");
+		errors.clear();
+		fileLines.clear();
 		std::cout << "Выберите файл \n";
 		auto filePath = OpenFileDialog();
 		if (!filePath) {
@@ -23,12 +25,13 @@ int main_func() {
 		}
 
 		std::cout << "Selected file path: " << filePath.value() << std::endl;
-		int comm_percent = GetUserInfo(PERCENT_DIFF, "Выберите процент комментариев", PERCENT_RANGE); //Спрашиваем у пользователя процент комментариев 
-		if (comm_percent == -1)
+
+		setting.ref_percent = GetUserInfo(setting.PERCENT_DIFF, "Выберите процент комментариев", setting.PERCENT_RANGE, setting.ref_percent); //Спрашиваем у пользователя процент комментариев 
+		if (setting.ref_percent == -1)
 			continue;
 
-		int comm_inteval = GetUserInfo(INTERVAL_DIFF, "Выберите интервал для проверки", INTERVAL_RANGE); //Спрашиваем у пользователя интервал для проверки 
-		if (comm_inteval == -1)
+		setting.ref_inteval = GetUserInfo(setting.INTERVAL_DIFF, "Выберите интервал для проверки", setting.INTERVAL_RANGE, setting.ref_inteval); //Спрашиваем у пользователя интервал для проверки 
+		if (setting.ref_inteval == -1)
 			continue;
 
 		auto start = chrono();
@@ -40,7 +43,7 @@ int main_func() {
 		system("cls");
 		std::cout << "Процесс выполнен за " << chrono_diff(start, end) << " секунды" << '\n';
 
-		ReturnResult(fileLines, errors, comm_percent, comm_inteval);
+		ReturnResult(fileLines, errors, setting.ref_percent, setting.ref_inteval, filePath.value());
 	}
 	return 0;
 }
@@ -61,8 +64,7 @@ key next_or_back(std::string echo) {
 	}
 }
 
-int GetUserInfo(const int DIFF, const std::string text, const int *interval) {
-	int user_enter = 10;
+int GetUserInfo(const int DIFF, const std::string text, const int *interval, int user_enter) {
 	bool close = 0;
 	while (!close) {
 		bool correct = 0;
@@ -103,18 +105,11 @@ int GetUserInfo(const int DIFF, const std::string text, const int *interval) {
 
 }
 
-void CommPercentPrint(std::vector<int> intervals, int interval_size, int fileinfosize) {
-	for (size_t i = 0; i < intervals.size(); i++) {
-		int start = intervals[i] * interval_size + 1;
-		int end = min(start + interval_size - 1, fileinfosize);
-
-		std::cout << "С " << start << ", по " << end << " - Интервал: " << intervals[i] << '\n';
-
-	}
-}
 
 int GetUserOpinion(int arg_num) {
 	int correct = 0;
+	std::cout << "\nНажмите Enter чтобы выбрать другой файл \n"
+		<< "Нажмите Esc, чтоб выйти из программы \n";
 	while (!correct) {
 		int key = _getch();
 		switch (key)
@@ -136,17 +131,18 @@ int GetUserOpinion(int arg_num) {
 	}
 }
 
-void ReturnResult(const auto& fileLines, const std::vector<err_info>& errorInfo, const int comm_percent, const int comm_interval) {
+void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const int ref_percent, const int ref_interval, const std::filesystem::path& filepath) {
 	//std::cout << fileLines.back().brackets << '\n';
 	int err_size = errorInfo.size();
-	std::vector<int> intervals = CommPercent(fileLines, comm_percent, comm_interval);
+	std::vector<comm_percent> intervals = CommPercent(fileLines, ref_percent, ref_interval);
 	do {
 		int user_enter = 0;
+		std::cout << "Файл: " << filepath << '\n';
 		std::cout << "Найдено ошибок: " << err_size << '\n';
 
 		bool interv_err = 0;
 		if (intervals.size() == 0) {
-			std::cout << "Количество комментариев соответствует требованию \n";
+			std::cout << "Количество комментариев соответствует требованию \n \n";
 			if (err_size != 0) {
 				std::cout << "Чтобы посмотреть ошибки нажмите 1 \n";
 				user_enter = GetUserOpinion(1);
@@ -165,14 +161,14 @@ void ReturnResult(const auto& fileLines, const std::vector<err_info>& errorInfo,
 				std::exit(0);
 		}
 		else {
-			std::cout << "Есть интервалы, с малым количеством комментариев \n"
+			std::cout << "Есть интервалы, с малым количеством комментариев \n \n"
 				<< "Чтобы посмотреть интервалы с нехваткой комментариев нажмите 1 \n";
 			interv_err = 1;
 			if (err_size != 0) {
 				std::cout << "Чтобы посмотреть ошибки нажмите 2 \n";
 				user_enter = GetUserOpinion(2);
 				if (user_enter == 1)
-					CommPercentPrint(intervals, comm_interval, fileLines.size());
+					CommPercentPrint(intervals, ref_interval, fileLines.size());
 				else if (user_enter == 2)
 					print_error();
 				else if (user_enter == 13)
@@ -183,7 +179,7 @@ void ReturnResult(const auto& fileLines, const std::vector<err_info>& errorInfo,
 			else {
 				user_enter = GetUserOpinion(1);
 				if (user_enter == 1)
-					CommPercentPrint(intervals, comm_interval, fileLines.size());
+					CommPercentPrint(intervals, ref_interval, fileLines.size());
 				else if (user_enter == 13)
 					return;
 				else if (user_enter == 27)
@@ -195,7 +191,7 @@ void ReturnResult(const auto& fileLines, const std::vector<err_info>& errorInfo,
 		
 
 
-	CommPercentPrint(intervals, comm_interval, fileLines.size());
+	CommPercentPrint(intervals, ref_interval, fileLines.size());
 	print_error();
 }
 
