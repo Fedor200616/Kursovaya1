@@ -11,22 +11,23 @@ void analyse(const string_info& prev, string_info& str_info) {
         InLongComment,
         InLineComment
     };
-    
+
     State state = State::Normal;
     if (str_info.have_unclosed_long_comment)
         state = State::InLongComment;
     else
         str_info.have_comment = 0;
     char quote_char = 0;
+    int quote_pos = 0;
 
-    if (state == State::Normal)
-        FindBrackBeforeVoid(str_info);
+    //if (state == State::Normal)
+    //    FindBrackBeforeVoid(str_info);
 
     for (size_t i = 0; i < str_info.str.size(); i++)
     {
-        char ch = str_info.str[i];
+        unsigned char ch = str_info.str[i];
 
-        char next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
+        unsigned char next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
         int comment_type = 0;
         switch (state)
         {
@@ -47,12 +48,30 @@ void analyse(const string_info& prev, string_info& str_info) {
             if (IsQuote(ch)) { // Кавычки
                 state = State::InQuote;
                 quote_char = ch;
+                quote_pos = i;
                 break;
             }
 
-            if(IsBracket(ch))
-                BracketChecker(str_info, ch);
-            
+            if (IsBracket(ch)) {
+                brack inf = { ch, i }; // unsigned char -> char но проверка IsBracket должна убрать UB
+                BracketChecker(str_info, inf);
+            }
+            // ПОСИМВОЛЬНО
+            //@, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
+            //В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
+            // , ) не норм
+            // 
+            // ТОКЕНЫ
+            //В переменной инт не может быть запятой, 
+            //В C++ не бывает if () или while () или for (). Внутри должно что-то быть. INVALID_CONSTRUCT 
+            // В C++ операторы выше должны иметь скобки 
+            // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
+            // 
+            // ПРЕДПРОЦЕССОР
+            //Проверим все инклюд файлы на их наличие в директории???
+            //
+
+
             break;
 
         case State::InQuote:
@@ -82,11 +101,11 @@ void analyse(const string_info& prev, string_info& str_info) {
         {
         case '\'':
             str_info.have_unclosedquote = 1;
-            errors.push_back({ str_info.line, '\'', err_info::err_type::UNCLOSED_QUOTE});
+            errors.emplace_back(pos(str_info.line, quote_pos), '\'', err_info::err_type::UNCLOSED_QUOTE);
             break;
         case '\"':
             str_info.have_unclosedquote = 2;
-            errors.push_back({ str_info.line, '\"', err_info::err_type::UNCLOSED_QUOTE});
+            errors.emplace_back(pos(str_info.line, quote_pos), '\"', err_info::err_type::UNCLOSED_QUOTE);
             break;
         default:
             break;
@@ -94,35 +113,35 @@ void analyse(const string_info& prev, string_info& str_info) {
     else
         str_info.have_unclosedquote = 0;
 
-    if (str_info.line == fileLines.back().line)
-        if(state == State::InLongComment)
-            errors.push_back({ str_info.line, ' ', err_info::err_type::UNCLOSED_LONG_COMMENT});
+    if (str_info.line == fileLines.back().line) // Проверка что мы в конце файла
+        if(state == State::InLongComment) // Длинный коммент не закрыт
+            errors.emplace_back(pos(str_info.line), ' ', err_info::err_type::UNCLOSED_LONG_COMMENT);
     
 }
 
-void BracketChecker(string_info& str_info, const char bracket) {
+void BracketChecker(string_info& str_info, const brack bracket) {
     int line = str_info.line;
-    std::string& result = str_info.brackets;
-    if (IsOpenBracket(bracket)) {
-        result += bracket;
+    std::vector<brack>& result = str_info.brackets;
+    if (IsOpenBracket(bracket.bracket)) {
+        result.push_back(bracket);
     }
-    else if (IsCloseBracket(bracket)) {
+    else if (IsCloseBracket(bracket.bracket)) {
         if (result.empty()) {
-            errors.push_back({ str_info.line, bracket, err_info::err_type::CLOSE_BRAKET_FIRST });
+            errors.emplace_back( pos(str_info.line, bracket.position), bracket.bracket, err_info::err_type::CLOSE_BRAKET_FIRST );
             return;
         }
-        char last_open = result.back();
-        if (BracketCompare(last_open, bracket)) {
+        char last_open = result.back().bracket;
+        if (BracketCompare(last_open, bracket.bracket)) {
             result.pop_back();
         }
         else{
-            if (!HaveSimOpenBrack(result, bracket)) {
+            if (!HaveSimOpenBrack(result, bracket.bracket)) { //Проверяем на такую же открывающуюся во всем массиве скобок
                 // В буфере нет скобок такого типа
-                errors.push_back({ str_info.line, bracket, err_info::err_type::CLOSE_BRAKET_FIRST });
+                errors.emplace_back( pos(str_info.line, bracket.position), bracket.bracket, err_info::err_type::CLOSE_BRAKET_FIRST );
             }
             else {
                 // есть скобка такого типа, значит порядок нарушен
-                errors.push_back(FindErrUnCloseBrack(str_info));
+                errors.emplace_back(FindErrUnCloseBrack(str_info));
                 result.pop_back(); //удаляем лишнюю открытую скобку
                 result.pop_back(); //удаляем скобку, которая закрывалась
             }
@@ -138,7 +157,7 @@ void recent(const string_info& prev, string_info& str_info) {
         str_info.have_comment = 2;
 }
 
-inline int CommentChecker(char first, char second) {
+inline int CommentChecker(unsigned char first, unsigned char second) {
     if (first != comment) return 0;
 
     if (second == comment) return 1;      // //
@@ -147,34 +166,34 @@ inline int CommentChecker(char first, char second) {
     return 0;
 }
 
-inline bool IsQuote(char ch) {
+inline bool IsQuote(unsigned char ch) {
     if (ch == '\'' || ch == '\"') return true;
     else return false;
 }
 
-inline bool IsOpenBracket(char ch) {
+inline bool IsOpenBracket(unsigned char ch) {
         return ch == '(' || ch == '[' || ch == '{';
 }
 
-inline bool IsCloseBracket(char ch) {
+inline bool IsCloseBracket(unsigned char ch) {
     return ch == ')' ||ch == ']' || ch == '}';
 }
 
-inline bool IsBracket(char ch) {
+inline bool IsBracket(unsigned char ch) {
     return ch == '(' || ch == ')' ||
         ch == '[' || ch == ']' ||
         ch == '{' || ch == '}';
 }
 
-inline bool BracketCompare(char open, char close) {
+inline bool BracketCompare(unsigned char open, unsigned char close) {
     return (open == '(' && close == ')') ||
         (open == '[' && close == ']') ||
         (open == '{' && close == '}');
 }
 
-inline bool HaveSimOpenBrack(const std::string& bracket_buff, const char close) { 
+inline bool HaveSimOpenBrack(const std::vector<brack>& bracket_buff, const unsigned char close) {
     for (auto open : bracket_buff) { 
-        if (BracketCompare(open, close)) { 
+        if (BracketCompare(open.bracket, close)) { 
             return true; 
         } 
     } 
@@ -199,18 +218,24 @@ std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, cons
     return not_comp_inter;
 }
 
+
+
 err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<string_info>& Lines) {
     if (Lines.empty()) {
-        return { -1, ' ', err_info::err_type::UNDEFINE_ERROR};
+        return { pos(- 1), ' ', err_info::err_type::UNDEFINE_ERROR};
     }
+
     for (int i = str_info.line; i > 0; i--) {
         if (Lines[i].brackets == str_info.brackets && Lines[i - 1].brackets != str_info.brackets)
-            if (Lines[i].brackets > Lines[i - 1].brackets)
-                return { Lines[i].line, Lines[i].brackets.back(), err_info::err_type::UNCLOSED_BRACKET };
+            if (Lines[i].brackets.size() > Lines[i - 1].brackets.size())
+                return err_info(pos(Lines[i].line, Lines[i].brackets.back().position),
+                Lines[i].brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
     }
-    return { str_info.line, str_info.brackets.back(), err_info::err_type::UNCLOSED_BRACKET };
+    return err_info( pos(str_info.line, str_info.brackets.back().position), 
+        str_info.brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
 }
 
+/*
 void FindBrackBeforeVoid(string_info& str_info) { 
     auto pos = str_info.str.find("void");
 
@@ -224,15 +249,15 @@ void FindBrackBeforeVoid(string_info& str_info) {
     }
 
     if (is_void && !str_info.brackets.empty()) {
-        errors.push_back({
-            str_info.line - 1,
-            str_info.brackets.back(),
+        errors.emplace_back(
+            pos(str_info.line - 1),
+            str_info.brackets.back().bracket,
             err_info::err_type::MISSING_CLOSE_BRACKET
-            });
+            );
 
         str_info.brackets.clear();
     }
-}
+}*/
 
 void FindEndBrackets(const std::vector<string_info>& info) { 
     if (info.back().brackets.empty())
@@ -240,8 +265,8 @@ void FindEndBrackets(const std::vector<string_info>& info) {
     int line = info.back().line;
     do {
         const string_info& last_str = info[line];
-        errors.push_back(FindErrUnCloseBrack(last_str, info));
-        line = errors.back().line-1;
+        errors.emplace_back(FindErrUnCloseBrack(last_str, info));
+        line = errors.back().position.line - 1;
 
     } while (!info[line].brackets.empty());
 }

@@ -14,11 +14,7 @@ int main()
     setlocale(LC_ALL, "");
 
 	main_func();
-	
-	//for (auto i : fileLines) {
-	//	std::cout << i.line << ' ' << i.str << '\n' <<
-	//		i.brackets << ' ' << i.have_comment << '\n';
-	//}
+
 	
     return 0;
 }

@@ -5,10 +5,13 @@
 int print_error(const std::vector<err_info>& errors) {
 	system("cls");
 	int err_size = errors.size();
-	std::cout << "Найдено ошибок:" << ' ' << err_size << '\n';
+	std::cout << "Найдено ошибок:" << ' ' << err_size << '\n'
+		<< '\n';
 	for (auto& err : errors) {
-		std::cout << "Строка номер " << err.line << ", Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n';
-		std::cout << fileLines[err.line].str << '\n';
+		std::cout << "Позиция {" << err.position.line << ", " << err.position.num 
+			<< "}, Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n'
+			<< fileLines[err.position.line].str << '\n'
+			<< '\n';
 	}
 	std::cout << "Для продолжения нажмите любую кнопку.";
 	_getch();

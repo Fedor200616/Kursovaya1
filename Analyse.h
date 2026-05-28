@@ -23,8 +23,8 @@ void analyse(const string_info& prev, string_info& str_info);
 /// Проверка скобок
 /// </summary>
 /// <param name="str_info">Информация о строке</param>
-/// <param name="bracket">Скобка</param>
-void BracketChecker(string_info& str_info, const char bracket);
+/// <param name="bracket">Информация о скобке</param>
+void BracketChecker(string_info& str_info, const brack bracket);
 
 /// <summary>
 /// Копирует нужные в str_info параметры из prev
@@ -39,21 +39,14 @@ void recent(const string_info& prev, string_info& str_info); //не копирует номер
 /// <param name="first">Первый символ на проверку</param>
 /// <param name="second">Второй символ на проверке</param>
 /// <returns>0 - нет коммента; 1 - однострочечный коммент; 2 - многострочечный коммент</returns>
-inline int CommentChecker(char first, char second);
-
-/// <summary>
-/// Проверка на кавычки.
-/// </summary>
-/// <param name="ch">Символ на проверке</param>
-/// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
-inline bool IsQuote(char ch);
+inline int CommentChecker(unsigned char first, unsigned char second);
 
 /// <summary>
 /// Проверка на любой тип скобок.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - скобка - true, иначе false</returns>
-inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
+inline bool IsBracket(unsigned char ch); // Проверка на скобки в целом, для удобства
 
 //==================================================================================================
 //==================================================================================================
@@ -64,21 +57,21 @@ inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
 /// <returns>Если символ является открытой скобкой, то возвращает true, иначе false.</returns>
-inline bool IsOpenBracket(char ch);
+inline bool IsOpenBracket(unsigned char ch);
 
 /// <summary>
 /// Проверка на закрытые скобки.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - закрытая скобка - true, иначе false</returns>
-inline bool IsCloseBracket(char ch);
+inline bool IsCloseBracket(unsigned char ch);
 
 /// <summary>
 /// Проверка на любой тип скобок.
 /// </summary>
 /// <param name="ch">Символ на проверку</param>
 /// <returns>Если символ - скобка - true, иначе false</returns>
-inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
+inline bool IsBracket(unsigned char ch); // Проверка на скобки в целом, для удобства
 
 /// <summary>
 /// Функция проверки что две скобки одного вида
@@ -86,14 +79,14 @@ inline bool IsBracket(char ch); // Проверка на скобки в целом, для удобства
 /// <param name="open">открывающаяся скобка</param>
 /// <param name="close">закрывающаяся скобка</param>
 /// <returns>1 - ели одного вида, 0 - иначе</returns>
-inline bool BracketCompare(char open, char close);
+inline bool BracketCompare(unsigned char open, unsigned char close);
 
 /// <summary>
 /// Проверка на кавычки.
 /// </summary>
 /// <param name="ch">Символ на проверке</param>
 /// <returns>Если символ является кавычкой, то возвращает true, иначе false.</returns>
-inline bool IsQuote(char ch);
+inline bool IsQuote(unsigned char ch);
 
 /// <summary>
 /// Первая проверка ошибки закрытой скобки: на наличие подобной открытой в буфере
@@ -101,7 +94,7 @@ inline bool IsQuote(char ch);
 /// <param name="bracket_buff">Буфер скобок из strin_info</param>
 /// <param name="close">Скобка, которую проверяем</param>
 /// <returns>1 - если в сткроке есть подобная открывающаяся скобка, ноль, если не было открытых скобок такого типа до этого</returns>
-inline bool HaveSimOpenBrack(const std::string& bracket_buff, const char close);
+inline bool HaveSimOpenBrack(const std::vector<brack>& bracket_buff, const unsigned char close);
 
 /// <summary>
 /// Находим строку с открытой скобкой, которая не была закрыта
@@ -110,6 +103,7 @@ inline bool HaveSimOpenBrack(const std::string& bracket_buff, const char close);
 /// <param name="Lines">информация о всем файле, в данной программе выставляется по умолчание на глобальную переменную</param>
 /// <returns></returns>
 err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<string_info>& Lines = fileLines);
+
 
 /// <summary>
 /// Находит строки, с процентов комментов ниже заданного
@@ -121,6 +115,8 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
 std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval);
 
 /// <summary>
+/// УБРАТЬ
+/// 
 /// Находит ошибку если есть открытые скобки перед функцией
 /// </summary>
 /// <param name="str_info">информация о строке</param>

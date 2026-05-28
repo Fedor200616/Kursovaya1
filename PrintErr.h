@@ -9,6 +9,13 @@
 #ifndef PRINTERR_H
 #define PRINTERR_H
 
+struct pos {
+    int line;
+    int num;
+
+    pos(int l, int n = 0) : line(l), num(n) {}
+
+};
 
 struct err_info
 {
@@ -23,7 +30,8 @@ struct err_info
         UNDEFINE_ERROR
 	};
 
-	int line;
+    pos position;
+
     char symbol;
 	err_type type;
 
@@ -34,7 +42,7 @@ struct err_info
         {
         case err_type::MISSING_CLOSE_BRACKET:
         case err_type::UNCLOSED_BRACKET:
-             return "Найдена незакрытая скобка";
+            return "Найдена незакрытая скобка";
         case err_type::UNCLOSED_QUOTE:
             return "Кавычки не закрыты в данной строке";
         case err_type::UNCLOSED_LONG_COMMENT:
@@ -46,6 +54,9 @@ struct err_info
             return std::to_string(static_cast<int>(error));
         }
     }
+
+    err_info(pos p, char s, err_type t) : position(p), symbol(s), type(t) {}
+
 };
 
 extern std::vector<err_info> errors;

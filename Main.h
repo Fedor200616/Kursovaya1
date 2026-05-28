@@ -7,6 +7,16 @@
 
 //namespace fs = std::filesystem;
 
+struct brack {
+		char bracket;
+		unsigned int position;
+
+		bool operator==(const brack& other) const {
+			return (bracket == other.bracket && position == other.position);
+		}
+
+};
+
 /// <summary>
 /// Структура информации о строке:
 /// номер строки | 
@@ -18,8 +28,8 @@
 struct string_info {
     int line;
     std::string str;
-
-	std::string brackets; // BracketChecker(str_info) - результат проверки на скобки
+	
+	std::vector<brack> brackets; // BracketChecker(str_info) - результат проверки на скобки
 
 	int have_unclosedquote; // UnclosedquoteChecker(str_info) - результат проверки на незакрытые кавычки
 	int have_unclosed_long_comment; // UnclosedLongCommentChecker(str_info) - результат проверки на незакрытый многострочный комментарий
