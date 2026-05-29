@@ -97,6 +97,13 @@ inline bool IsQuote(unsigned char ch);
 inline bool HaveSimOpenBrack(const std::vector<brack>& bracket_buff, const unsigned char close);
 
 /// <summary>
+/// Проверка, что символ не может быть внутри C++ кода
+/// </summary>
+/// <param name="ch">Символ</param>
+/// <returns>1 если символ $ @ ` или кирилица</returns>
+inline bool IsInvalidChar(const unsigned char& ch);
+
+/// <summary>
 /// Находим строку с открытой скобкой, которая не была закрыта
 /// </summary>
 /// <param name="str_info">информация о строке, в которой найдена некорректная закрытая скобка</param>
@@ -115,17 +122,10 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
 std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval);
 
 /// <summary>
-/// УБРАТЬ
-/// 
-/// Находит ошибку если есть открытые скобки перед функцией
-/// </summary>
-/// <param name="str_info">информация о строке</param>
-void FindBrackBeforeVoid(string_info& str_info);
-
-/// <summary>
 /// Нахождение незакрытых скобок в конце
 /// </summary>
 /// <param name="info">информация о строках</param>
 void FindEndBrackets(const std::vector<string_info>& info);
+
 
 #endif // ANALYSE_H

@@ -2,9 +2,9 @@
 #include "Analyse.h"
 #include "PrintErr.h"
 
-void analyse(const string_info& prev, string_info& str_info) {
+void analyse(const string_info& prev_str, string_info& str_info) {
     
-    recent(prev, str_info);
+    recent(prev_str, str_info);
     enum class State {
         Normal,
         InQuote,
@@ -19,6 +19,7 @@ void analyse(const string_info& prev, string_info& str_info) {
         str_info.have_comment = 0;
     char quote_char = 0;
     int quote_pos = 0;
+    int quote_counter = 0;
 
     //if (state == State::Normal)
     //    FindBrackBeforeVoid(str_info);
@@ -26,7 +27,7 @@ void analyse(const string_info& prev, string_info& str_info) {
     for (size_t i = 0; i < str_info.str.size(); i++)
     {
         unsigned char ch = str_info.str[i];
-
+        unsigned char prev = (i - 1 > 0) ? str_info.str[i - 1] : '\0';
         unsigned char next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
         int comment_type = 0;
         switch (state)
@@ -49,6 +50,7 @@ void analyse(const string_info& prev, string_info& str_info) {
                 state = State::InQuote;
                 quote_char = ch;
                 quote_pos = i;
+                quote_counter = 0;
                 break;
             }
 
@@ -56,10 +58,12 @@ void analyse(const string_info& prev, string_info& str_info) {
                 brack inf = { ch, i }; // unsigned char -> char но проверка IsBracket должна убрать UB
                 BracketChecker(str_info, inf);
             }
+
             // ПОСИМВОЛЬНО
             //@, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
             //В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
             // , ) не норм
+            // ; перед }
             // 
             // ТОКЕНЫ
             //В переменной инт не может быть запятой, 
@@ -71,17 +75,29 @@ void analyse(const string_info& prev, string_info& str_info) {
             //Проверим все инклюд файлы на их наличие в директории???
             //
 
+            if (IsInvalidChar(ch)) {
+                errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+            }
 
             break;
 
         case State::InQuote:
             if (ch == '\\') { // escape
                 i++;
+                quote_counter++;
                 break;
             }
             if (ch == quote_char) {
+                if (quote_char == '\'') {
+                    if (quote_counter == 0) // нельзя '' пустые
+                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::EMPTY_CHAR_QUOTE);
+                    if (quote_counter > 1) 
+                        errors.emplace_back(pos(str_info.line, i - 1), prev, err_info::err_type::TOO_LONG_CHAR_QUOTE);
+                }
                 state = State::Normal;
             }
+            else 
+                quote_counter++;
             break;
 
         case State::InLongComment:
@@ -95,7 +111,9 @@ void analyse(const string_info& prev, string_info& str_info) {
         default:
             break;
         }
-    }
+    } // Выход из цикла
+
+
     if (state == State::InQuote)
         switch (quote_char)
         {
@@ -148,7 +166,6 @@ void BracketChecker(string_info& str_info, const brack bracket) {
         }
     }
 }
-
 
 void recent(const string_info& prev, string_info& str_info) {
     str_info.brackets = prev.brackets;
@@ -218,8 +235,6 @@ std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, cons
     return not_comp_inter;
 }
 
-
-
 err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<string_info>& Lines) {
     if (Lines.empty()) {
         return { pos(- 1), ' ', err_info::err_type::UNDEFINE_ERROR};
@@ -235,30 +250,6 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
         str_info.brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
 }
 
-/*
-void FindBrackBeforeVoid(string_info& str_info) { 
-    auto pos = str_info.str.find("void");
-
-    bool is_void = false;
-
-    if (pos != std::string::npos) {
-        bool left_ok = (pos == 0 || !isalnum(str_info.str[pos - 1]));
-        bool right_ok = (pos + 4 >= str_info.str.size() || !isalnum(str_info.str[pos + 4]));
-
-        is_void = left_ok && right_ok;
-    }
-
-    if (is_void && !str_info.brackets.empty()) {
-        errors.emplace_back(
-            pos(str_info.line - 1),
-            str_info.brackets.back().bracket,
-            err_info::err_type::MISSING_CLOSE_BRACKET
-            );
-
-        str_info.brackets.clear();
-    }
-}*/
-
 void FindEndBrackets(const std::vector<string_info>& info) { 
     if (info.back().brackets.empty())
         return;
@@ -269,4 +260,12 @@ void FindEndBrackets(const std::vector<string_info>& info) {
         line = errors.back().position.line - 1;
 
     } while (!info[line].brackets.empty());
+}
+
+inline bool IsInvalidChar(const unsigned char& ch) { //@, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
+    if (ch == '$' || ch == '@' || ch == '`')
+        return 1;
+    else if (ch >= 0xC0 && ch <= 0xFF || ch == 0xA8 || ch == 0xB8)
+        return 1;
+    else return 0;
 }

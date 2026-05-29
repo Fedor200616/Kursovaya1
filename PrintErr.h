@@ -27,7 +27,10 @@ struct err_info
 		NOT_EOS,
         CLOSE_BRAKET_FIRST,
         FILE_IS_EMPTY,
-        UNDEFINE_ERROR
+        UNDEFINE_ERROR,
+        INVALID_CHARACTER,
+        EMPTY_CHAR_QUOTE,
+        TOO_LONG_CHAR_QUOTE
 	};
 
     pos position;
@@ -49,6 +52,12 @@ struct err_info
             return "Длинный комментарий не имеет конца";
         case err_type::CLOSE_BRAKET_FIRST:
             return "Найдена закрывающаяся скобка без открытых";
+        case err_type::INVALID_CHARACTER:
+            return "Данный символ не может использоваться в синтаксисе";
+        case err_type::EMPTY_CHAR_QUOTE:
+            return "Пустые символьные кавычки";
+        case err_type::TOO_LONG_CHAR_QUOTE:
+            return "Больше одного символа в символьных ковычках";
             
         default:
             return std::to_string(static_cast<int>(error));
