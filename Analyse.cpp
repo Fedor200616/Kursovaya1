@@ -24,10 +24,14 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     //if (state == State::Normal)
     //    FindBrackBeforeVoid(str_info);
 
-    for (size_t i = 0; i < str_info.str.size(); i++)
+    unsigned char real_prev = '\0';
+
+    for (int i = 0; i < str_info.str.size(); i++)
     {
         unsigned char ch = str_info.str[i];
-        unsigned char prev = (i - 1 > 0) ? str_info.str[i - 1] : '\0';
+        unsigned char prev = (i > 0) ? str_info.str[i - 1] : '\0';
+        
+
         unsigned char next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
         int comment_type = 0;
         switch (state)
@@ -56,14 +60,23 @@ void analyse(const string_info& prev_str, string_info& str_info) {
 
             if (IsBracket(ch)) {
                 brack inf = { ch, i }; // unsigned char -> char но проверка IsBracket должна убрать UB
+                if (ch == ')' && real_prev == ',')
+                    errors.emplace_back(pos(str_info.line, i), real_prev, err_info::err_type::INVALID_CONSTRUCTION);
+                if (ch == '}' && real_prev == ';')
+                    errors.emplace_back(pos(str_info.line, i), real_prev, err_info::err_type::INVALID_CONSTRUCTION);
                 BracketChecker(str_info, inf);
+            }
+            
+            if (IsOperator(ch) && IsOperator(real_prev)) {
+                if (binar_oprator_checker(ch, prev, real_prev))
+                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CONSTRUCTION);
             }
 
             // ПОСИМВОЛЬНО
-            //@, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
-            //В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
-            // , ) не норм
-            // ; перед }
+            //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
+            //===== В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
+            //===== , ) не норм пустое условие в скобках
+            //===== ; перед }
             // 
             // ТОКЕНЫ
             //В переменной инт не может быть запятой, 
@@ -78,6 +91,8 @@ void analyse(const string_info& prev_str, string_info& str_info) {
             if (IsInvalidChar(ch)) {
                 errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
             }
+
+            
 
             break;
 
@@ -111,6 +126,9 @@ void analyse(const string_info& prev_str, string_info& str_info) {
         default:
             break;
         }
+
+        
+        real_prev = (ch != '\t' && ch != ' ') ? ch : real_prev;
     } // Выход из цикла
 
 
@@ -268,4 +286,59 @@ inline bool IsInvalidChar(const unsigned char& ch) { //@, $, ` (обратный апостро
     else if (ch >= 0xC0 && ch <= 0xFF || ch == 0xA8 || ch == 0xB8)
         return 1;
     else return 0;
+}
+
+bool IsOperator(unsigned char ch) {
+    // Строка содержит все символы, которые могут быть операторами или их частью
+    static const std::string ops = "+-*/%=!<>|&^~?:.";
+
+    // Если символ найден в строке, значит это оператор
+    return ops.find(ch) != std::string::npos;
+}
+
+bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char real_prev) {
+    bool hadSpace = (prev != real_prev);
+
+    if (hadSpace) {
+        
+        if (ch == '=') {
+            if (std::string("+-*/%!=<>").find(real_prev) != std::string::npos) return 1; // ОШИБКА: Разрыв составного оператора пробелом (> =, + =, : :)
+        }
+        if (real_prev == '+' && ch == '+') return 1;
+        if (real_prev == '-' && ch == '-') return 1;
+        if (real_prev == '-' && ch == '>') return 1;
+        if (real_prev == '&' && ch == '&') return 1;
+        if (real_prev == '|' && ch == '|') return 1;
+        if (real_prev == ':' && ch == ':') return 1;
+        if (real_prev == '<' && ch == '<') return 1;
+        if (real_prev == '>' && ch == '>') return 1;
+
+        return 0; // В остальных случаях пробел между знаками (напр. "a + -1") допустим
+    }
+
+    
+    
+    switch (real_prev) { // Если знаки стоят вплотную, проверяем на допустимость комбинации
+    // Разрешенные пары (Белый список)
+    case '+': if (ch == '+' || ch == '=') return 0; break;
+    case '-': if (ch == '-' || ch == '=' || ch == '>') return 0; break;
+    case '*': if (ch == '=' || ch == '*') return 0; break; 
+    case '/': if (ch == '=') return 0; break;
+    case '=': if (ch == '=') return 0; break;
+    case '!': if (ch == '=') return 0; break;
+    case '<': if (ch == '=' || ch == '<') return 0; break;
+    case '>': if (ch == '=' || ch == '>') return 0; break;
+    case '&': if (ch ==     '=' || ch == '&') return 0; break;
+    case '|': if (ch == '=' || ch == '|') return 0; break;
+    case '%': if (ch == '=') return 0; break;
+    case '^': if (ch == '=') return 0; break;
+    case ':': if (ch == ':') return 0; break; 
+    default: break;
+    }
+
+    // Разрешаем унарные операторы, которые могут стоять ПОСЛЕ других операторов (напр. "a * -b", "if (!a)")
+    // Также разрешаем амперсанд и звездочку для указателей/адресов
+    if (std::string("+-!&*").find(ch) != std::string::npos) return 0;
+
+    return 1; // Все остальное (напр. "+ /") - ошибка
 }

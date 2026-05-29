@@ -10,7 +10,7 @@ int print_error(const std::vector<err_info>& errors) {
 	for (auto& err : errors) {
 		std::cout << "Позиция {" << err.position.line << ", " << err.position.num 
 			<< "}, Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n'
-			<< fileLines[err.position.line].str << '\n'
+			<< delete_tab(fileLines[err.position.line].str) << '\n'
 			<< '\n';
 	}
 	std::cout << "Для продолжения нажмите любую кнопку.";
@@ -31,4 +31,13 @@ int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_siz
 	std::cout << "Для продолжения нажмите любую кнопку.";
 	_getch();
 	return 0;
+}
+
+std::string delete_tab(const std::string& s) {
+	size_t first = s.find_first_not_of(" \t"); //Находим сивол который не пробел и не таб
+	if (first == std::string::npos)
+		return "";
+	else
+		return s.substr(first);
+
 }

@@ -1,15 +1,6 @@
-﻿  Analyse.cpp
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(58,31): warning C4838: Преобразование из "unsigned char" в "char" требует сужающего преобразования.
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(222,23): warning C4018: <: несоответствие типов со знаком и без знака
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(224,71): warning C4018: <: несоответствие типов со знаком и без знака
-  Main.cpp
-  PrintErr.cpp
-  Reader.cpp
-C:\Users\I\source\repos\Kursovaya1\Reader.cpp(54,23): warning C4018: <: несоответствие типов со знаком и без знака
-  User.cpp
-  Создание кода
-  26 of 770 functions ( 3.4%) were compiled, the rest were copied from previous compilation.
+﻿  Создание кода
+  7 of 785 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    25 functions had inline decision re-evaluated but remain unchanged
+    41 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe

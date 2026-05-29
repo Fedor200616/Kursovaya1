@@ -30,7 +30,8 @@ struct err_info
         UNDEFINE_ERROR,
         INVALID_CHARACTER,
         EMPTY_CHAR_QUOTE,
-        TOO_LONG_CHAR_QUOTE
+        TOO_LONG_CHAR_QUOTE,
+        INVALID_CONSTRUCTION
 	};
 
     pos position;
@@ -58,6 +59,8 @@ struct err_info
             return "Пустые символьные кавычки";
         case err_type::TOO_LONG_CHAR_QUOTE:
             return "Больше одного символа в символьных ковычках";
+        case err_type::INVALID_CONSTRUCTION:
+            return "Неправильно составленная конструкция";
             
         default:
             return std::to_string(static_cast<int>(error));
@@ -91,5 +94,11 @@ int print_error(const std::vector<err_info>& errors = ::errors);
 /// <returns>0</returns>
 int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize);
 
+/// <summary>
+/// Функция удаления пробелов и табуляции перед строкой для краивого вывода
+/// </summary>
+/// <param name="s">строка из анализируемой программы</param>
+/// <returns>строку без табуляции или пробелов перед ней</returns>
+std::string delete_tab(const std::string& s);
 
 #endif

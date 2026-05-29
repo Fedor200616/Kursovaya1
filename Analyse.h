@@ -127,5 +127,20 @@ std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, cons
 /// <param name="info">информация о строках</param>
 void FindEndBrackets(const std::vector<string_info>& info);
 
+/// <summary>
+/// Проверка символа, является лм он оператором
+/// </summary>
+/// <param name="ch">символ</param>
+/// <returns>1 если оператор, 0 иначе</returns>
+inline bool IsOperator(unsigned char ch);
+
+/// <summary>
+/// Проверка на ошибки связанные с двойними операторами
+/// </summary>
+/// <param name="ch">последний знак</param>
+/// <param name="prev">знак перед последним</param>
+/// <param name="real_prev">реальный знак перед последним</param>
+/// <returns>1 если есть ошибка, 0 иначе</returns>
+bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char real_prev);
 
 #endif // ANALYSE_H
