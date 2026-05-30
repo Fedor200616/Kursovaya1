@@ -9,8 +9,25 @@ void analyse(const string_info& prev_str, string_info& str_info) {
         Normal,
         InQuote,
         InLongComment,
-        InLineComment
+        InLineComment,
+        IsNumber
     };
+
+    struct NumberParam
+    {
+        enum class type {
+            Bin,
+            Oct,
+            Dec,
+            Hex
+        };
+
+        std::string value = "";
+        bool has_dot = false;
+        bool In_Exp = false;
+        type numtype = type::Dec;
+    };
+    NumberParam number;
 
     State state = State::Normal;
     if (str_info.have_unclosed_long_comment)
@@ -37,6 +54,7 @@ void analyse(const string_info& prev_str, string_info& str_info) {
         switch (state)
         {
         case State::Normal:
+        {
             comment_type = CommentChecker(ch, next); // 2 - длинный, 1 - строчный, 0 - нет коммента
             if (comment_type == 2) { //Длинный коммент
                 state = State::InLongComment;
@@ -66,7 +84,7 @@ void analyse(const string_info& prev_str, string_info& str_info) {
                     errors.emplace_back(pos(str_info.line, i), real_prev, err_info::err_type::INVALID_CONSTRUCTION);
                 BracketChecker(str_info, inf);
             }
-            
+
             if (IsOperator(ch) && IsOperator(real_prev)) {
                 if (binar_oprator_checker(ch, prev, real_prev))
                     errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CONSTRUCTION);
@@ -92,10 +110,44 @@ void analyse(const string_info& prev_str, string_info& str_info) {
                 errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
             }
 
-            
+            bool is_start_of_number = isdigit(ch) && !isalpha(real_prev) && real_prev != '_';
+
+            if (is_start_of_number) {
+                if (isdigit(ch)) {
+                    state = State::IsNumber;
+                    number.value = ch;
+                    number.has_dot = false;
+                    number.In_Exp = false;
+                    number.numtype = NumberParam::type::Dec;
+                    if (ch == '0') {
+                        switch (next) {
+                        case 'x':
+                        case 'X':
+                            number.numtype = NumberParam::type::Hex;
+                            i++;
+                            break;
+                        case 'b':
+                        case 'B':
+                            number.numtype = NumberParam::type::Bin;
+                            i++;
+                            break;
+                        default:
+                            if (isdigit(next)) {
+                                number.numtype = NumberParam::type::Oct;
+                            }/*
+                            else {
+                                errors.emplace_back(pos(str_info.line, i + 1), next, err_info::err_type::INVALID_CHARACTER);
+                                state = State::Normal;
+                            }*/
+                            break;
+                        }
+                    }
+
+                }
+            }
 
             break;
-
+        }
         case State::InQuote:
             if (ch == '\\') { // escape
                 i++;
@@ -123,12 +175,77 @@ void analyse(const string_info& prev_str, string_info& str_info) {
                 str_info.have_unclosed_long_comment = 0;
             }
             break;
+        case State::IsNumber:
+        {
+            bool is_dot = (ch == '.');
+            bool is_exp = (tolower(ch) == 'e' && number.numtype == NumberParam::type::Dec);
+            bool is_sign_after_exp = (number.numtype == NumberParam::type::Dec &&
+                (tolower(prev) == 'e') &&
+                (ch == '+' || ch == '-'));
+            bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
+                (isspace(ch) || IsOperator(ch) || IsBracket(ch) || ch == ';' || ch == ',');
+            if (EndOfNum) {
+                state = State::Normal;
+                i--;
+                break;
+            }
+            bool Suffix = tolower(ch) == 'u' || 
+                tolower(ch) == 'l' ||
+                tolower(ch) == 'f';
+            if (Suffix) {
+                break;
+            }
+
+            switch (number.numtype) {
+            case NumberParam::type::Bin:
+                if (ch != '0' && ch != '1') {
+                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                }
+                break;
+            case NumberParam::type::Oct:
+                if (ch < '0' || ch > '7') {
+                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                }
+                break;
+            case NumberParam::type::Dec:
+                if (is_dot) {
+                    if (number.has_dot || number.In_Exp) // Точка после точки или после экспоненты - ошибка
+                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                    number.has_dot = true;
+                }
+                else if (is_exp) {
+                    if (number.In_Exp) // Вторая 'e' в числе - ошибка
+                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                    number.In_Exp = true;
+                }
+                else if (isdigit(ch) || is_sign_after_exp) {
+                    // Это нормальные части числа
+                }
+                else {
+                    // Если это не цифра, не точка, не экспонента и не суффикс - значит ошибка
+                    // Например: 123a
+                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                }
+                break;
+            case NumberParam::type::Hex:
+                if (!isxdigit(ch)) {
+                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
+                }
+                break;
+            default:
+                errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::UNDEFINE_ERROR);
+                break;
+
+            }
+
+            break;
+        }
         default:
             break;
         }
 
         
-        real_prev = (ch != '\t' && ch != ' ') ? ch : real_prev;
+        real_prev = (!iswspace(ch)) ? ch : real_prev;
     } // Выход из цикла
 
 
