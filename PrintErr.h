@@ -31,7 +31,8 @@ struct err_info
         INVALID_CHARACTER,
         EMPTY_CHAR_QUOTE,
         TOO_LONG_CHAR_QUOTE,
-        INVALID_CONSTRUCTION
+        INVALID_CONSTRUCTION,
+        INVALID_PREPROCESSOR_DIRECTIVE
 	};
 
     pos position;
