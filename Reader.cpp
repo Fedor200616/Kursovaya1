@@ -2,6 +2,7 @@
 #include "Reader.h"
 #include "Analyse.h"
 #include "Chrono.h"
+#include "LexerUtils.h"
 
 std::optional<fs::path> OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводник
     wchar_t filename[MAX_PATH];

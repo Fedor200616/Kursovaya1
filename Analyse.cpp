@@ -6,271 +6,245 @@
 void analyse(const string_info& prev_str, string_info& str_info) {
     
     recent(prev_str, str_info);
-    enum class State {
-        Normal,
-        InQuote,
-        InLongComment,
-        InLineComment,
-        IsNumber
-    };
-
-    struct NumberParam
-    {
-        enum class type {
-            Bin,
-            Oct,
-            Dec,
-            Hex
-        };
-
-        std::string value = "";
-        bool has_dot = false;
-        bool In_Exp = false;
-        type numtype = type::Dec;
-    };
-    NumberParam number;
-
+    
     State state = State::Normal;
     if (str_info.have_unclosed_long_comment)
         state = State::InLongComment;
     else
         str_info.have_comment = 0;
-    char quote_char = 0;
-    int quote_pos = 0;
-    int quote_counter = 0;
-
-    //if (state == State::Normal)
-    //    FindBrackBeforeVoid(str_info);
 
     unsigned char real_prev = '\0';
+    NumberParam numparam = NumberParam();
+    QuoteInfo quote_info = QuoteInfo();
 
-    for (int i = 0; i < str_info.str.size(); i++)
-    {
-        unsigned char ch = str_info.str[i];
-        unsigned char prev = (i > 0) ? str_info.str[i - 1] : '\0';
-        
+    int i = 0;
+    AnalysisContext context = AnalysisContext(str_info, i, real_prev, state, numparam, quote_info);
 
-        unsigned char next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
+    for (; i < str_info.str.size(); i++)
+    {   
+        context.refresh();
+
         int comment_type = 0;
         switch (state)
         {
         case State::Normal:
-        {
-            comment_type = CommentChecker(ch, next); // 2 - длинный, 1 - строчный, 0 - нет коммента
-            if (comment_type == 2) { //Длинный коммент
-                state = State::InLongComment;
-                i++;
-                str_info.have_comment = comment_type;
-                str_info.have_unclosed_long_comment = 1;
-                break;
-            }
-            else if (comment_type == 1) {//Проверка на обычный коммент
-                state = State::InLineComment;
-                str_info.have_comment = comment_type;
-                break;
-            }
-            if (IsQuote(ch)) { // Кавычки
-                state = State::InQuote;
-                quote_char = ch;
-                quote_pos = i;
-                quote_counter = 0;
-                break;
-            }
-
-            if (IsBracket(ch)) {
-                brack inf = { ch, i }; // unsigned char -> char но проверка IsBracket должна убрать UB
-                if (ch == ')' && real_prev == ',')
-                    errors.emplace_back(pos(str_info.line, i), real_prev, err_info::err_type::INVALID_CONSTRUCTION);
-                if (ch == '}' && real_prev == ';')
-                    errors.emplace_back(pos(str_info.line, i), real_prev, err_info::err_type::INVALID_CONSTRUCTION);
-                BracketChecker(str_info, inf);
-            }
-
-            if (IsOperator(ch) && IsOperator(real_prev)) {
-                if (binar_oprator_checker(ch, prev, real_prev))
-                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CONSTRUCTION);
-            }
-
-            // ПОСИМВОЛЬНО
-            //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
-            //===== В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
-            //===== , ) не норм пустое условие в скобках
-            //===== ; перед }
-            // 
-            // ТОКЕНЫ
-            //В переменной инт не может быть запятой, 
-            //В C++ не бывает if () или while () или for (). Внутри должно что-то быть. INVALID_CONSTRUCT 
-            // В C++ операторы выше должны иметь скобки 
-            // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
-            // 
-            // ПРЕДПРОЦЕССОР
-            //Проверим все инклюд файлы на их наличие в директории???
-            //
-
-            if (IsInvalidChar(ch)) {
-                errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-            }
-
-            bool is_start_of_number = isdigit(ch) && !isalpha(real_prev) && real_prev != '_';
-
-            if (is_start_of_number) {
-                if (isdigit(ch)) {
-                    state = State::IsNumber;
-                    number.value = ch;
-                    number.has_dot = false;
-                    number.In_Exp = false;
-                    number.numtype = NumberParam::type::Dec;
-                    if (ch == '0') {
-                        switch (next) {
-                        case 'x':
-                        case 'X':
-                            number.numtype = NumberParam::type::Hex;
-                            i++;
-                            break;
-                        case 'b':
-                        case 'B':
-                            number.numtype = NumberParam::type::Bin;
-                            i++;
-                            break;
-                        default:
-                            if (isdigit(next)) {
-                                number.numtype = NumberParam::type::Oct;
-                            }/*
-                            else {
-                                errors.emplace_back(pos(str_info.line, i + 1), next, err_info::err_type::INVALID_CHARACTER);
-                                state = State::Normal;
-                            }*/
-                            break;
-                        }
-                    }
-
-                }
-            }
-
+            handleNormal(context);
             break;
-        }
         case State::InQuote:
-            if (ch == '\\') { // escape
-                i++;
-                quote_counter++;
-                break;
-            }
-            if (ch == quote_char) {
-                if (quote_char == '\'') {
-                    if (quote_counter == 0) // нельзя '' пустые
-                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::EMPTY_CHAR_QUOTE);
-                    if (quote_counter > 1) 
-                        errors.emplace_back(pos(str_info.line, i - 1), prev, err_info::err_type::TOO_LONG_CHAR_QUOTE);
-                }
-                state = State::Normal;
-            }
-            else 
-                quote_counter++;
+            handleQuote(context);
             break;
 
         case State::InLongComment:
-            str_info.have_comment = 2;
-            if (ch == long_comment_end[0] && next == long_comment_end[1]) {
-                state = State::Normal;
-                i++;
-                str_info.have_unclosed_long_comment = 0;
-            }
+            handleInLongComment(context);
             break;
         case State::IsNumber:
-        {
-            bool is_dot = (ch == '.');
-            bool is_exp = (tolower(ch) == 'e' && number.numtype == NumberParam::type::Dec);
-            bool is_sign_after_exp = (number.numtype == NumberParam::type::Dec &&
-                (tolower(prev) == 'e') &&
-                (ch == '+' || ch == '-'));
-            bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
-                (isspace(ch) || IsOperator(ch) || IsBracket(ch) || ch == ';' || ch == ',');
-            if (EndOfNum) {
-                state = State::Normal;
-                i--;
-                break;
-            }
-            bool Suffix = tolower(ch) == 'u' || 
-                tolower(ch) == 'l' ||
-                tolower(ch) == 'f';
-            if (Suffix) {
-                break;
-            }
-
-            switch (number.numtype) {
-            case NumberParam::type::Bin:
-                if (ch != '0' && ch != '1') {
-                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                }
-                break;
-            case NumberParam::type::Oct:
-                if (ch < '0' || ch > '7') {
-                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                }
-                break;
-            case NumberParam::type::Dec:
-                if (is_dot) {
-                    if (number.has_dot || number.In_Exp) // Точка после точки или после экспоненты - ошибка
-                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                    number.has_dot = true;
-                }
-                else if (is_exp) {
-                    if (number.In_Exp) // Вторая 'e' в числе - ошибка
-                        errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                    number.In_Exp = true;
-                }
-                else if (isdigit(ch) || is_sign_after_exp) {
-                    // Это нормальные части числа
-                }
-                else {
-                    // Если это не цифра, не точка, не экспонента и не суффикс - значит ошибка
-                    // Например: 123a
-                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                }
-                break;
-            case NumberParam::type::Hex:
-                if (!isxdigit(ch)) {
-                    errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::INVALID_CHARACTER);
-                }
-                break;
-            default:
-                errors.emplace_back(pos(str_info.line, i), ch, err_info::err_type::UNDEFINE_ERROR);
-                break;
-
-            }
-
+            handleIsNumber(context);
             break;
-        }
         default:
             break;
         }
 
         
-        real_prev = (!iswspace(ch)) ? ch : real_prev;
+        context.real_prev_update();
     } // Выход из цикла
 
-
-    if (state == State::InQuote)
-        switch (quote_char)
-        {
-        case '\'':
-            str_info.have_unclosedquote = 1;
-            errors.emplace_back(pos(str_info.line, quote_pos), '\'', err_info::err_type::UNCLOSED_QUOTE);
-            break;
-        case '\"':
-            str_info.have_unclosedquote = 2;
-            errors.emplace_back(pos(str_info.line, quote_pos), '\"', err_info::err_type::UNCLOSED_QUOTE);
-            break;
-        default:
-            break;
-        }
-    else
-        str_info.have_unclosedquote = 0;
+    FindErrorInQuote(context);
 
     if (str_info.line == fileLines.back().line) // Проверка что мы в конце файла
         if(state == State::InLongComment) // Длинный коммент не закрыт
             errors.emplace_back(pos(str_info.line), ' ', err_info::err_type::UNCLOSED_LONG_COMMENT);
     
+}
+
+void handleNormal(AnalysisContext& ctx) {
+    int comment_type = CommentChecker(ctx.ch, ctx.next); // 2 - длинный, 1 - строчный, 0 - нет коммента
+    if (comment_type == 2) { //Длинный коммент
+        ctx.state = State::InLongComment;
+        ctx.i++;
+        ctx.str_info.have_comment = comment_type;
+        ctx.str_info.have_unclosed_long_comment = 1;
+        return;
+    }
+    else if (comment_type == 1) {//Проверка на обычный коммент
+        ctx.state = State::InLineComment;
+        ctx.str_info.have_comment = comment_type;
+        return;
+    }
+    if (IsQuote(ctx.ch)) { // Кавычки
+        ctx.state = State::InQuote;
+        ctx.quote = QuoteInfo(ctx.ch, ctx.i);
+        return;
+    }
+
+    if (IsBracket(ctx.ch)) {
+        brack inf = { ctx.ch, ctx.i }; // unsigned char -> char но проверка IsBracket должна убрать UB
+        if (ctx.ch == ')' && ctx.real_prev == ',')
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
+        if (ctx.ch == '}' && ctx.real_prev == ';')
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
+        BracketChecker(ctx.str_info, inf);
+    }
+
+    if (IsOperator(ctx.ch) && IsOperator(ctx.real_prev)) {
+        if (binar_oprator_checker(ctx.ch, ctx.prev, ctx.real_prev))
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION);
+    }
+
+    // ПОСИМВОЛЬНО
+    //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
+    //===== В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
+    //===== , ) не норм пустое условие в скобках
+    //===== ; перед }
+    // 
+    // ТОКЕНЫ
+    //В переменной инт не может быть запятой, 
+    //В C++ не бывает if () или while () или for (). Внутри должно что-то быть. INVALID_CONSTRUCT 
+    // В C++ операторы выше должны иметь скобки 
+    // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
+    // 
+    // ПРЕДПРОЦЕССОР
+    //Проверим все инклюд файлы на их наличие в директории???
+    //
+
+    if (IsInvalidChar(ctx.ch)) {
+        errors.emplace_back(pos(ctx.str_info.line, ctx.i), ctx.ch, err_info::err_type::INVALID_CHARACTER);
+    }
+
+    bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_';
+
+    if (is_start_of_number) {
+        if (isdigit(ctx.ch)) {
+            ctx.state = State::IsNumber;
+            if (ctx.ch == '0') {
+                switch (ctx.next) {
+                case 'x':
+                case 'X':
+                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Hex);
+                    ctx.i++;
+                    break;
+                case 'b':
+                case 'B':
+                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Bin);
+                    ctx.i++;
+                    break;
+                default:
+                    if (isdigit(ctx.next)) {
+                        ctx.num = NumberParam(ctx.ch, NumberParam::type::Oct);
+                    }
+                    else {
+                        ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec);
+                    }
+                    break;
+                }
+            }
+            else 
+                ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec);
+        }
+    }
+}
+
+void handleQuote(AnalysisContext& ctx) {
+    if (ctx.ch == '\\') { // escape
+        ctx.i++;
+        ctx.quote.quote_counter++;
+        return;
+    }
+    if (ctx.ch == ctx.quote.quote_char) {
+        if (ctx.quote.quote_char == '\'') {
+            if (ctx.quote.quote_counter == 0) // нельзя '' пустые
+                ctx.addError(err_info::err_type::EMPTY_CHAR_QUOTE);
+            if (ctx.quote.quote_counter > 1)
+                errors.emplace_back(pos(ctx.str_info.line, ctx.i - 1), ctx.prev, err_info::err_type::TOO_LONG_CHAR_QUOTE);
+        }
+        ctx.state = State::Normal;
+    }
+    else
+        ctx.quote.quote_counter++;
+}
+
+void handleInLongComment(AnalysisContext& ctx) {
+    ctx.str_info.have_comment = 2;
+    if (ctx.ch == long_comment_end[0] && ctx.next == long_comment_end[1]) {
+        ctx.state = State::Normal;
+        ctx.i++;
+        ctx.str_info.have_unclosed_long_comment = 0;
+    }
+}
+
+void handleIsNumber(AnalysisContext& ctx) {
+    bool is_dot = (ctx.ch == '.');
+    bool is_exp = (tolower(ctx.ch) == 'e' && ctx.num.numtype == NumberParam::type::Dec);
+    bool is_sign_after_exp = (ctx.num.numtype == NumberParam::type::Dec &&
+        (tolower(ctx.prev) == 'e') &&
+        (ctx.ch == '+' || ctx.ch == '-'));
+    bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
+        (isspace(ctx.ch) || IsOperator(ctx.ch) || IsBracket(ctx.ch) || ctx.ch == ';' || ctx.ch == ',');
+    if (EndOfNum) {
+        ctx.state = State::Normal;
+        ctx.i--;
+        return;
+    }
+    bool Suffix = tolower(ctx.ch) == 'u' ||
+        tolower(ctx.ch) == 'l' ||
+        tolower(ctx.ch) == 'f';
+    if (Suffix) {
+        return;
+    }
+    
+    switch (ctx.num.numtype) {
+    case NumberParam::type::Bin:
+        if (ctx.ch != '0' && ctx.ch != '1') {
+            ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        }
+        break;
+    case NumberParam::type::Oct:
+        if (is_dot) {
+            ctx.num.numtype = NumberParam::type::Dec;
+            ctx.num.has_dot = true;
+        }
+        else if (ctx.ch < '0' || ctx.ch > '7') {
+            ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        }
+        break;
+    case NumberParam::type::Dec:
+        if (is_dot) {
+            if (ctx.num.has_dot || ctx.num.in_exp) // Точка после точки или после экспоненты - ошибка
+                ctx.addError(err_info::err_type::UNNECESSARY_POINT);
+            ctx.num.has_dot = true;
+        }
+        else if (is_exp) {
+            if (ctx.num.in_exp) // Вторая 'e' в числе - ошибка
+                ctx.addError(err_info::err_type::INVALID_CHARACTER);
+            ctx.num.in_exp = true;
+        }
+        else if (isdigit(ctx.ch) || is_sign_after_exp) {
+            // Это нормальные части числа
+        }
+        else {
+            // Если это не цифра, не точка, не экспонента и не суффикс - значит ошибка
+            // Например: 123a
+            ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        }
+        break;
+    case NumberParam::type::Hex:
+        if (!isxdigit(ctx.ch)) {
+            ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        }
+        break;
+    default:
+        ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        break;
+
+    }
+
+}
+
+void FindErrorInQuote(AnalysisContext& ctx) {
+    if (ctx.state == State::InQuote)
+        if(ctx.quote.quote_char == '\'' || ctx.quote.quote_char == '\"')
+            ctx.addError(err_info::err_type::UNCLOSED_QUOTE, ctx.quote.quote_char, ctx.quote.quote_pos);
+    else
+        ctx.str_info.have_unclosedquote = 0;
 }
 
 void BracketChecker(string_info& str_info, const brack bracket) {
@@ -343,4 +317,14 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
         str_info.brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
 }
 
+void FindEndBrackets(const std::vector<string_info>& info) {
+    if (info.back().brackets.empty())
+        return;
+    int line = info.back().line;
+    do {
+        const string_info& last_str = info[line];
+        errors.emplace_back(FindErrUnCloseBrack(last_str, info));
+        line = errors.back().position.line - 1;
 
+    } while (!info[line].brackets.empty());
+}

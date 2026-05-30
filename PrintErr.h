@@ -32,7 +32,8 @@ struct err_info
         EMPTY_CHAR_QUOTE,
         TOO_LONG_CHAR_QUOTE,
         INVALID_CONSTRUCTION,
-        INVALID_PREPROCESSOR_DIRECTIVE
+        INVALID_PREPROCESSOR_DIRECTIVE,
+        UNNECESSARY_POINT
 	};
 
     pos position;
@@ -62,7 +63,9 @@ struct err_info
             return "Больше одного символа в символьных ковычках";
         case err_type::INVALID_CONSTRUCTION:
             return "Неправильно составленная конструкция";
-            
+        case err_type::UNNECESSARY_POINT:
+            return "Лишняя точка в числе";
+
         default:
             return std::to_string(static_cast<int>(error));
         }
