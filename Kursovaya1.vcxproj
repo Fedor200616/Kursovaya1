@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="Analyse.h" />
     <ClInclude Include="Chrono.h" />
+    <ClInclude Include="Classes.h" />
     <ClInclude Include="LexerUtils.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="PrintErr.h" />

@@ -49,7 +49,6 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
     return results;
 }
 
-std::vector<err_info> errors;
 
 int AnaliseIterator(std::vector<string_info>& info) {
     for (int i = 1; i < info.size(); i++) {
@@ -58,6 +57,8 @@ int AnaliseIterator(std::vector<string_info>& info) {
     if (!info.back().brackets.empty()) {
         FindEndBrackets(info);
     }
+    (info);
+   
     return 0;
 }
 

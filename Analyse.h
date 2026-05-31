@@ -3,18 +3,11 @@
 #include <vector>
 #include "main.h"
 #include "PrintErr.h"
+#include "LexerUtils.h"
+#include "Classes.h"
 
 #ifndef ANALYSE_H
 #define ANALYSE_H
-
-enum class State {
-    Normal,
-    InQuote,
-    InLongComment,
-    InLineComment,
-    IsNumber,
-    InPreprocessor
-};
 
 struct NumberParam
 {
@@ -50,32 +43,6 @@ struct QuoteInfo {
     QuoteInfo(unsigned char ch, int p) : quote_char(ch), quote_pos(p), quote_counter(0) {};
 };
 
-enum class PreprocStandard
-{
-    NONE,
-    Include,
-    Define,
-    Undef,
-    If,
-    Ifdef,
-    Ifndef,
-    Elif,
-    Else,
-    Endif,
-    Error,
-    Line,
-    Pragma
-};
-
-enum class PreprocState
-{
-    AfterHesh, // Состояние ожидания названия директивы
-    InName,
-    AfterName, // Состояние ожидания аргументов
-    InArg,
-    AfterArg, // После данного аргумента точно не должно быть еще символов
-    ErrorConstr // Если была найдена ошибка, то не проверяем строку дальше во избежание мусорных предупреждений
-};
 
 struct Preproc {
     std::string preproc_name;
@@ -122,6 +89,7 @@ struct AnalysisContext {
     NumberParam& num;          // Параметры числа
 	QuoteInfo& quote;          // Параметры кавычек
     Preproc& preproc;
+    bool index_minus = false;
     
     /// <summary>
     /// Конструктор, используемы в начале цикла побуквенной проверки
@@ -158,7 +126,19 @@ struct AnalysisContext {
         errors.emplace_back(pos(str_info.line, position), symbol, type);
     }
     void real_prev_update() {
-        real_prev = (!isspace(ch)) ? ch : real_prev;
+        if (index_minus) {
+            index_minus = false;
+        }
+        if (ch == long_comment_end[0] && next == long_comment_end[1]){
+			real_prev = ' '; // Чтобы не было ложной ошибки при проверке на операторы после комментария (напр. "a * / b")
+		}
+        else {
+            real_prev = (!isspace(ch)) ? ch : real_prev;
+        }
+    }
+    void iminus() {
+        i--;
+        index_minus = true;
     }
     
     enum class type_of_change
@@ -169,6 +149,14 @@ struct AnalysisContext {
 
     void state_change(State newState, type_of_change toc = type_of_change::Nothing) {
         //Различные функции в зависимости от начального стейта
+        if (state == State::InLongComment) {
+            real_prev = ' '; // Чтобы не было ложной ошибки при проверке на операторы после комментария (напр. "a * / b")
+            if (preproc.type != PreprocStandard::NONE) { // Если мы были в препроцессоре до этого, то сохраняем это состояние, так как длинный комментарий может быть внутри препроцессора
+                state = State::InPreprocessor;
+                return;
+            }
+        }
+
         state = newState;
     }
 

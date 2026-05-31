@@ -64,12 +64,14 @@ struct err_info
             return "Больше одного символа в символьных ковычках";
         case err_type::INVALID_CONSTRUCTION:
             return "Неправильно составленная конструкция";
+        case err_type::INVALID_PREPROCESSOR_DIRECTIVE:
+			return "Недопустимая директива препроцессора";
         case err_type::UNNECESSARY_POINT:
             return "Лишняя точка в числе";
         case err_type::INVALID_CHAR_AFTER_INCLUDE:
             return "После #include ожидалось < или \"";
         default:
-            return std::to_string(static_cast<int>(error));
+            return "Error code: <" + std::to_string(static_cast<int>(error)) + "> ";
         }
     }
 

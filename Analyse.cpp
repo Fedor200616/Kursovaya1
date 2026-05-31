@@ -24,7 +24,6 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     for (; i < str_info.str.size(); i++)
     {   
         context.refresh();
-
         int comment_type = 0;
         switch (state)
         {
@@ -54,9 +53,6 @@ void analyse(const string_info& prev_str, string_info& str_info) {
 
     FindErrorInQuote(context);
 
-    if (context.state == State::InPreprocessor) {
-        PreprocChecker(context);
-    }
 
     if (str_info.line == fileLines.back().line) // Проверка что мы в конце файла
         if(state == State::InLongComment) // Длинный коммент не закрыт
@@ -67,19 +63,19 @@ void analyse(const string_info& prev_str, string_info& str_info) {
 void handleNormal(AnalysisContext& ctx) {
     int comment_type = CommentChecker(ctx.ch, ctx.next); // 2 - длинный, 1 - строчный, 0 - нет коммента
     if (comment_type == 2) { //Длинный коммент
-        ctx.state = State::InLongComment;
+        ctx.state_change(State::InLongComment);
         ctx.i++;
         ctx.str_info.have_comment = comment_type;
         ctx.str_info.have_unclosed_long_comment = 1;
         return;
     }
     else if (comment_type == 1) {//Проверка на обычный коммент
-        ctx.state = State::InLineComment;
+        ctx.state_change(State::InLineComment);
         ctx.str_info.have_comment = comment_type;
         return;
     }
     if (IsQuote(ctx.ch)) { // Кавычки
-        ctx.state = State::InQuote;
+        ctx.state_change(State::InQuote);
         ctx.quote = QuoteInfo(ctx.ch, ctx.i);
         return;
     }
@@ -111,7 +107,7 @@ void handleNormal(AnalysisContext& ctx) {
     // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
     // 
     // ПРЕДПРОЦЕССОР
-    //Проверим все инклюд файлы на их наличие в директории???
+    //===== Проверим все инклюд файлы на их наличие в директории???
     //
 
     if (IsInvalidChar(ctx.ch)) {
@@ -119,17 +115,26 @@ void handleNormal(AnalysisContext& ctx) {
     }
 
     if (ctx.ch == '#') {
-        if (ctx.real_prev == '\0')
-            ctx.state_change(State::InPreprocessor);
-        else
+        // В C++ решетка должна быть первым значимым символом в строке.
+        // Если real_prev == '\0', значит до этой решетки были только пробелы или комментарии.
+        if (ctx.real_prev == '\0' || ctx.real_prev == ' ') {
+            ctx.state = State::InPreprocessor;
+            ctx.preproc.state = PreprocState::AfterHesh;
+            ctx.preproc.preproc_name = "";
+            ctx.preproc.argum_name = "";
+        }
+        else {
+            // Если real_prev != '\0', значит перед решеткой уже был какой-то код (напр. int a; #include)
             ctx.addError(err_info::err_type::INVALID_CHARACTER);
+        }
+        return;
     }
 
     bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_';
 
     if (is_start_of_number) {
         if (isdigit(ctx.ch)) {
-            ctx.state = State::IsNumber;
+            ctx.state_change(State::IsNumber);
             if (ctx.ch == '0') {
                 switch (ctx.next) {
                 case 'x':
@@ -171,7 +176,7 @@ void handleQuote(AnalysisContext& ctx) {
             if (ctx.quote.quote_counter > 1)
                 errors.emplace_back(pos(ctx.str_info.line, ctx.i - 1), ctx.prev, err_info::err_type::TOO_LONG_CHAR_QUOTE);
         }
-        ctx.state = State::Normal;
+        ctx.state_change(State::Normal);
     }
     else
         ctx.quote.quote_counter++;
@@ -180,7 +185,7 @@ void handleQuote(AnalysisContext& ctx) {
 void handleInLongComment(AnalysisContext& ctx) {
     ctx.str_info.have_comment = 2;
     if (ctx.ch == long_comment_end[0] && ctx.next == long_comment_end[1]) {
-        ctx.state = State::Normal;
+        ctx.state_change(State::Normal);
         ctx.i++;
         ctx.str_info.have_unclosed_long_comment = 0;
     }
@@ -195,8 +200,8 @@ void handleIsNumber(AnalysisContext& ctx) {
     bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
         (isspace(ctx.ch) || IsOperator(ctx.ch) || IsBracket(ctx.ch) || ctx.ch == ';' || ctx.ch == ',');
     if (EndOfNum) {
-        ctx.state = State::Normal;
-        ctx.i--;
+        ctx.state_change(State::Normal);
+        ctx.iminus();
         return;
     }
     bool Suffix = tolower(ctx.ch) == 'u' ||
@@ -257,14 +262,18 @@ void handleIsNumber(AnalysisContext& ctx) {
 void handlePreprocessor(AnalysisContext& ctx) {
     switch (ctx.preproc.state)
     {
-    case PreprocState::AfterHesh: //Проследить за порядком
-        if (isalpha(ctx.ch)) {
+    case PreprocState::AfterHesh: 
+        if (CommentChecker(ctx.ch, ctx.next)) {
+            ctx.iminus();
+            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
+        }
+        else if (isalpha(ctx.ch)) {
             ctx.preproc.state = PreprocState::InName;
-            ctx.i--;
+            ctx.iminus();
         }
         else {
             if (!isspace(ctx.ch)) {
-                ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE);
+                ctx.addError(err_info::err_type::INVALID_CHARACTER); // #1clude например
                 ctx.preproc.state = PreprocState::ErrorConstr;
             }
         }
@@ -277,12 +286,17 @@ void handlePreprocessor(AnalysisContext& ctx) {
         else {
             ctx.preproc.setPreproc();
             if (ctx.preproc.type == PreprocStandard::NONE){
-                ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE);
+                ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE); // неизвестная директива препроцессора
                 ctx.preproc.state = PreprocState::ErrorConstr;
             }
         }
         break;
     case PreprocState::AfterName:
+        if (CommentChecker(ctx.ch, ctx.next)) {
+            ctx.iminus();
+            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
+            return;
+        }
         if (isspace(ctx.ch)) break; // Пропускаем пробелы после названия (напр. #include   <...)
         if (ctx.preproc.type == PreprocStandard::Include) {
             if (ctx.ch == '<' || ctx.ch == '\"') {
@@ -294,13 +308,18 @@ void handlePreprocessor(AnalysisContext& ctx) {
             }
         }
         else {
-            ctx.i--;
+            ctx.iminus();
             ctx.preproc.state = PreprocState::InArg;
         }
         break;
     case PreprocState::InArg:
     {
         bool normSimbol = isgraph(ctx.ch);
+        if (CommentChecker(ctx.ch, ctx.next)) {
+            ctx.iminus();
+            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
+            return;
+        }
         if (ctx.ch == '\"' && ctx.preproc.type == PreprocStandard::Include) {
             //проверка подключенного файла
             ctx.preproc.state = PreprocState::AfterArg;
@@ -314,8 +333,13 @@ void handlePreprocessor(AnalysisContext& ctx) {
         break;
     }
     case PreprocState::AfterArg:
+        if (CommentChecker(ctx.ch, ctx.next)) {
+            ctx.iminus();
+            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
+            return;
+        }
         if (isgraph(ctx.ch)) {
-            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION);
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION); // После аргумента не должно быть видимых символов Пример #include <file> garbage
             ctx.preproc.state = PreprocState::ErrorConstr;
         }
         break;
@@ -324,7 +348,7 @@ void handlePreprocessor(AnalysisContext& ctx) {
         break;
 
     default:
-        ctx.addError(err_info::err_type::UNDEFINE_ERROR);
+		ctx.addError(err_info::err_type::UNDEFINE_ERROR); // Ветка по умолчанию, которая не должна срабатывать
         break;
     }
 }
@@ -334,14 +358,13 @@ void PreprocChecker(AnalysisContext& ctx) {
     if (ctx.preproc.state == PreprocState::InArg) {
         if (ctx.preproc.type == PreprocStandard::Include) {
             // Выдаем ошибку: ожидался закрывающий символ > или "
-            char expected = (ctx.preproc.argum_name.find('<') != std::string::npos) ? '>' : '\"';
+            char expected = (ctx.str_info.str.find('<') != std::string::npos) ? '>' : '\"';
             ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, expected);
         }
     }
+
     // Записываем тип препроцессора в str_info
     ctx.str_info.preporcstate = ctx.preproc.type;
-    
-
 }
 
 void FindErrorInQuote(AnalysisContext& ctx) {

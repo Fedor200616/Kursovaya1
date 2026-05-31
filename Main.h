@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Analyse.h"
+#include "Classes.h"
 
 #ifndef MAIN_H
 #define MAIN_H
@@ -36,7 +36,7 @@ struct string_info {
 	int have_unclosed_long_comment; // UnclosedLongCommentChecker(str_info) - результат проверки на незакрытый многострочный комментарий
 	//Далее переменные относящиеся к заданию с комментариями
     int have_comment; // CommentChecker(const string_info str_info);
-	PreprocState preporcstate = NONE;
+	PreprocStandard preporcstate = PreprocStandard::NONE;
 };
 
 const string_info empty_str_info{};

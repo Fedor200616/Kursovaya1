@@ -6,6 +6,7 @@
 #include "User.h"
 
 std::vector<string_info> fileLines;
+std::vector<err_info> errors;
 
 int main()
 {
@@ -13,7 +14,7 @@ int main()
     SetConsoleOutputCP(1251); // выходная кодировка
     setlocale(LC_ALL, "");
 
-	main_func();
+	main_func(); //User.cpp
 
 	
     return 0;

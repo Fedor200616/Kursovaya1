@@ -35,9 +35,9 @@ int main_func() {
 			continue;
 
 		auto start = chrono();
-		fileLines = CopyStringFromFile(filePath.value());
+		fileLines = CopyStringFromFile(filePath.value()); //Reader.cpp
 
-		AnaliseIterator(fileLines);
+		AnaliseIterator(fileLines); //Reader.cpp
 
 		auto end = chrono();
 		system("cls");
