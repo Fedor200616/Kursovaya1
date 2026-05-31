@@ -16,9 +16,10 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     unsigned char real_prev = '\0';
     NumberParam numparam = NumberParam();
     QuoteInfo quote_info = QuoteInfo();
+    Preproc preproc = Preproc();
 
     int i = 0;
-    AnalysisContext context = AnalysisContext(str_info, i, real_prev, state, numparam, quote_info);
+    AnalysisContext context = AnalysisContext(str_info, i, real_prev, state, numparam, quote_info, preproc);
 
     for (; i < str_info.str.size(); i++)
     {   
@@ -40,6 +41,9 @@ void analyse(const string_info& prev_str, string_info& str_info) {
         case State::IsNumber:
             handleIsNumber(context);
             break;
+        case State::InPreprocessor:
+            handlePreprocessor(context);
+            break;
         default:
             break;
         }
@@ -49,6 +53,10 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     } // Выход из цикла
 
     FindErrorInQuote(context);
+
+    if (context.state == State::InPreprocessor) {
+        PreprocChecker(context);
+    }
 
     if (str_info.line == fileLines.back().line) // Проверка что мы в конце файла
         if(state == State::InLongComment) // Длинный коммент не закрыт
@@ -108,6 +116,13 @@ void handleNormal(AnalysisContext& ctx) {
 
     if (IsInvalidChar(ctx.ch)) {
         errors.emplace_back(pos(ctx.str_info.line, ctx.i), ctx.ch, err_info::err_type::INVALID_CHARACTER);
+    }
+
+    if (ctx.ch == '#') {
+        if (ctx.real_prev == '\0')
+            ctx.state_change(State::InPreprocessor);
+        else
+            ctx.addError(err_info::err_type::INVALID_CHARACTER);
     }
 
     bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_';
@@ -236,6 +251,96 @@ void handleIsNumber(AnalysisContext& ctx) {
         break;
 
     }
+
+}
+
+void handlePreprocessor(AnalysisContext& ctx) {
+    switch (ctx.preproc.state)
+    {
+    case PreprocState::AfterHesh: //Проследить за порядком
+        if (isalpha(ctx.ch)) {
+            ctx.preproc.state = PreprocState::InName;
+            ctx.i--;
+        }
+        else {
+            if (!isspace(ctx.ch)) {
+                ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE);
+                ctx.preproc.state = PreprocState::ErrorConstr;
+            }
+        }
+        break;
+
+    case PreprocState::InName:
+        if (isalpha(ctx.ch)) {
+            ctx.preproc.preproc_name += ctx.ch;
+        }
+        else {
+            ctx.preproc.setPreproc();
+            if (ctx.preproc.type == PreprocStandard::NONE){
+                ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE);
+                ctx.preproc.state = PreprocState::ErrorConstr;
+            }
+        }
+        break;
+    case PreprocState::AfterName:
+        if (isspace(ctx.ch)) break; // Пропускаем пробелы после названия (напр. #include   <...)
+        if (ctx.preproc.type == PreprocStandard::Include) {
+            if (ctx.ch == '<' || ctx.ch == '\"') {
+                ctx.preproc.state = PreprocState::InArg; // Мы не записываем эти символы, для упроцения
+            }
+            else {
+                ctx.addError(err_info::err_type::INVALID_CHAR_AFTER_INCLUDE); // Ожидалось < или "
+                ctx.preproc.state = PreprocState::ErrorConstr;
+            }
+        }
+        else {
+            ctx.i--;
+            ctx.preproc.state = PreprocState::InArg;
+        }
+        break;
+    case PreprocState::InArg:
+    {
+        bool normSimbol = isgraph(ctx.ch);
+        if (ctx.ch == '\"' && ctx.preproc.type == PreprocStandard::Include) {
+            //проверка подключенного файла
+            ctx.preproc.state = PreprocState::AfterArg;
+        }
+        else if (ctx.ch == '>' && ctx.preproc.type == PreprocStandard::Include) {
+            ctx.preproc.state = PreprocState::AfterArg;
+        }
+        else {
+            ctx.preproc.argum_name += ctx.ch;
+        }
+        break;
+    }
+    case PreprocState::AfterArg:
+        if (isgraph(ctx.ch)) {
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION);
+            ctx.preproc.state = PreprocState::ErrorConstr;
+        }
+        break;
+
+    case PreprocState::ErrorConstr:
+        break;
+
+    default:
+        ctx.addError(err_info::err_type::UNDEFINE_ERROR);
+        break;
+    }
+}
+
+void PreprocChecker(AnalysisContext& ctx) {
+    // Проверка после прохода всей строки
+    if (ctx.preproc.state == PreprocState::InArg) {
+        if (ctx.preproc.type == PreprocStandard::Include) {
+            // Выдаем ошибку: ожидался закрывающий символ > или "
+            char expected = (ctx.preproc.argum_name.find('<') != std::string::npos) ? '>' : '\"';
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, expected);
+        }
+    }
+    // Записываем тип препроцессора в str_info
+    ctx.str_info.preporcstate = ctx.preproc.type;
+    
 
 }
 

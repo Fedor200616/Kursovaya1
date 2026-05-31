@@ -12,7 +12,8 @@ enum class State {
     InQuote,
     InLongComment,
     InLineComment,
-    IsNumber
+    IsNumber,
+    InPreprocessor
 };
 
 struct NumberParam
@@ -49,6 +50,67 @@ struct QuoteInfo {
     QuoteInfo(unsigned char ch, int p) : quote_char(ch), quote_pos(p), quote_counter(0) {};
 };
 
+enum class PreprocStandard
+{
+    NONE,
+    Include,
+    Define,
+    Undef,
+    If,
+    Ifdef,
+    Ifndef,
+    Elif,
+    Else,
+    Endif,
+    Error,
+    Line,
+    Pragma
+};
+
+enum class PreprocState
+{
+    AfterHesh, // Состояние ожидания названия директивы
+    InName,
+    AfterName, // Состояние ожидания аргументов
+    InArg,
+    AfterArg, // После данного аргумента точно не должно быть еще символов
+    ErrorConstr // Если была найдена ошибка, то не проверяем строку дальше во избежание мусорных предупреждений
+};
+
+struct Preproc {
+    std::string preproc_name;
+    PreprocStandard type;
+	PreprocState state = PreprocState::AfterHesh;
+
+    std::string argum_name;
+
+    Preproc () : preproc_name(""), type(PreprocStandard::NONE), argum_name("") {};
+
+	/// <summary>
+	/// Функция записи типа, функция сама меняет положение состояние на ожидание аргумента
+	/// </summary>
+	void setPreproc() {
+        std::string name = preproc_name;
+        for (auto& c : name) c = tolower((unsigned char)c);
+		if (name == "include") type = PreprocStandard::Include;
+		else if (name == "define") type = PreprocStandard::Define;
+		else if (name == "undef") type = PreprocStandard::Undef;
+		else if (name == "if") type = PreprocStandard::If;
+		else if (name == "ifdef") type = PreprocStandard::Ifdef;
+		else if (name == "ifndef") type = PreprocStandard::Ifndef;
+		else if (name == "elif") type = PreprocStandard::Elif;
+		else if (name == "else") type = PreprocStandard::Else;
+		else if (name == "endif") type = PreprocStandard::Endif;
+		else if (name == "error") type = PreprocStandard::Error;
+		else if (name == "line") type = PreprocStandard::Line;
+		else if (name == "pragma") type = PreprocStandard::Pragma;
+		else type = PreprocStandard::NONE;
+        state = PreprocState::AfterName;
+	}
+
+
+};
+
 struct AnalysisContext {
     string_info& str_info;
     int& i;                    // Ссылка на текущий индекс в цикле
@@ -58,7 +120,8 @@ struct AnalysisContext {
     unsigned char& real_prev;  // Последний значащий символ (ссылка)
     State& state;
     NumberParam& num;          // Параметры числа
-    QuoteInfo& quote;
+	QuoteInfo& quote;          // Параметры кавычек
+    Preproc& preproc;
     
     /// <summary>
     /// Конструктор, используемы в начале цикла побуквенной проверки
@@ -69,8 +132,8 @@ struct AnalysisContext {
     /// <param name="st">Состояние на данный момент</param>
     /// <param name="n">Параметры числа</param>
     /// <param name="q">Параметры кавычек</param>
-    AnalysisContext(string_info& str, int& curr_i, unsigned char& rp, State& st, NumberParam& n, QuoteInfo& q)
-        : str_info(str), i(curr_i), real_prev(rp), state(st), num(n), quote(q) {
+    AnalysisContext(string_info& str, int& curr_i, unsigned char& rp, State& st, NumberParam& n, QuoteInfo& q, Preproc& p)
+        : str_info(str), i(curr_i), real_prev(rp), state(st), num(n), quote(q), preproc(p) {
         ch = str.str[i];
         prev = (i > 0) ? str.str[i - 1] : '\0';
         next = (i + 1 < str.str.size()) ? str.str[i + 1] : '\0';
@@ -95,8 +158,20 @@ struct AnalysisContext {
         errors.emplace_back(pos(str_info.line, position), symbol, type);
     }
     void real_prev_update() {
-        real_prev = (!iswspace(ch)) ? ch : real_prev;
+        real_prev = (!isspace(ch)) ? ch : real_prev;
     }
+    
+    enum class type_of_change
+    {
+        Nothing,
+    };
+
+
+    void state_change(State newState, type_of_change toc = type_of_change::Nothing) {
+        //Различные функции в зависимости от начального стейта
+        state = newState;
+    }
+
 };
 
 /// <summary>
@@ -114,6 +189,10 @@ void handleInLongComment(AnalysisContext& ctx);
 void handleIsNumber(AnalysisContext& ctx);
 
 void handleQuote(AnalysisContext& ctx);
+
+void handlePreprocessor(AnalysisContext& ctx);
+
+void PreprocChecker(AnalysisContext& ctx);
 
 void FindErrorInQuote(AnalysisContext& ctx);
 

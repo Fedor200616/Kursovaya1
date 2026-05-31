@@ -33,7 +33,8 @@ struct err_info
         TOO_LONG_CHAR_QUOTE,
         INVALID_CONSTRUCTION,
         INVALID_PREPROCESSOR_DIRECTIVE,
-        UNNECESSARY_POINT
+        UNNECESSARY_POINT,
+        INVALID_CHAR_AFTER_INCLUDE
 	};
 
     pos position;
@@ -65,7 +66,8 @@ struct err_info
             return "Неправильно составленная конструкция";
         case err_type::UNNECESSARY_POINT:
             return "Лишняя точка в числе";
-
+        case err_type::INVALID_CHAR_AFTER_INCLUDE:
+            return "После #include ожидалось < или \"";
         default:
             return std::to_string(static_cast<int>(error));
         }
