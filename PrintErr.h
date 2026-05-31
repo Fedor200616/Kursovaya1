@@ -34,7 +34,8 @@ struct err_info
         INVALID_CONSTRUCTION,
         INVALID_PREPROCESSOR_DIRECTIVE,
         UNNECESSARY_POINT,
-        INVALID_CHAR_AFTER_INCLUDE
+        INVALID_CHAR_AFTER_INCLUDE,
+        MISSING_ARGUMENT
 	};
 
     pos position;
@@ -70,6 +71,8 @@ struct err_info
             return "Ћишн€€ точка в числе";
         case err_type::INVALID_CHAR_AFTER_INCLUDE:
             return "ѕосле #include ожидалось < или \"";
+		case err_type::MISSING_ARGUMENT:
+			return "ќтсутствует аргумент (лишн€€ зап€та€)";
         default:
             return "Error code: <" + std::to_string(static_cast<int>(error)) + "> ";
         }

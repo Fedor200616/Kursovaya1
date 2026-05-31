@@ -83,7 +83,7 @@ void handleNormal(AnalysisContext& ctx) {
     if (IsBracket(ctx.ch)) {
         brack inf = { ctx.ch, ctx.i }; // unsigned char -> char но проверка IsBracket должна убрать UB
         if (ctx.ch == ')' && ctx.real_prev == ',')
-            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
+            ctx.addError(err_info::err_type::MISSING_ARGUMENT, ctx.real_prev);
         if (ctx.ch == '}' && ctx.real_prev == ';')
             ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
         BracketChecker(ctx.str_info, inf);
@@ -93,7 +93,9 @@ void handleNormal(AnalysisContext& ctx) {
         if (binar_oprator_checker(ctx.ch, ctx.prev, ctx.real_prev))
             ctx.addError(err_info::err_type::INVALID_CONSTRUCTION);
     }
-
+    if (ctx.ch == ',' && ctx.real_prev == ',') {
+        ctx.addError(err_info::err_type::MISSING_ARGUMENT); // ƒвойна€ зап€та€
+    }
     // ѕќ—»ћ¬ќЋ№Ќќ
     //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
     //===== ¬ C++ нельз€ писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT

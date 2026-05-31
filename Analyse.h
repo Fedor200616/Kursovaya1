@@ -129,7 +129,7 @@ struct AnalysisContext {
         if (index_minus) {
             index_minus = false;
         }
-        if (ch == long_comment_end[0] && next == long_comment_end[1]){
+        else if (ch == long_comment_end[0] && next == long_comment_end[1]){
 			real_prev = ' '; // Чтобы не было ложной ошибки при проверке на операторы после комментария (напр. "a * / b")
 		}
         else {
