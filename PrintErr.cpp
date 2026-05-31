@@ -8,10 +8,13 @@ int print_error(const std::vector<err_info>& errors) {
 	std::cout << "Найдено ошибок:" << ' ' << err_size << '\n'
 		<< '\n';
 	for (auto& err : errors) {
-		std::cout << "Позиция {" << err.position.line << ", " << err.position.num 
+		
+		std::cout << "Позиция {" << err.position.line << ", " << err.position.num
 			<< "}, Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n'
-			<< delete_tab(fileLines[err.position.line].str) << '\n'
-			<< '\n';
+			<< delete_tab(fileLines[err.position.line].str) << '\n';
+
+		int caret_pos = err.position.num - offset(fileLines[err.position.line].str);
+		std::cout << std::string(caret_pos, ' ') << "^\n";
 	}
 	std::cout << "Для продолжения нажмите любую кнопку.";
 	_getch();
@@ -39,5 +42,11 @@ std::string delete_tab(const std::string& s) {
 		return "";
 	else
 		return s.substr(first);
+}
 
+int offset(const std::string& s) {
+	// Находим, сколько символов мы обрезали в начале (табы и пробелы)
+	size_t offset = s.find_first_not_of(" \t");
+	if (offset == std::string::npos) return 0;
+	return offset;
 }

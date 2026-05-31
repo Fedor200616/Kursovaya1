@@ -112,4 +112,11 @@ int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_siz
 /// <returns>строку без табул€ции или пробелов перед ней</returns>
 std::string delete_tab(const std::string& s);
 
+/// <summary>
+/// ‘ункци€ нахождени€ количества удаленных символов в delete_tab дл€ корректного отображени€ позиции ошибки в строке
+/// </summary>
+/// <param name="s">строка из анализируемой программы</param>
+/// <returns>„исло на которое сдвинута строка табул€цией</returns>
+int offset(const std::string& s);
+
 #endif

@@ -1,6 +1,48 @@
-﻿  Создание кода
-  3 of 844 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+﻿  Analyse.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Analyse.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Analyse.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(24,14): warning C4018: <: несоответствие типов со знаком и без знака
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(84,26): warning C4838: Преобразование из "unsigned char" в "char" требует сужающего преобразования.
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(84,34): warning C4838: Преобразование из "int" в "unsigned int" требует сужающего преобразования.
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(419,23): warning C4018: <: несоответствие типов со знаком и без знака
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(421,71): warning C4018: <: несоответствие типов со знаком и без знака
+  LexerUtils.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "LexerUtils.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "LexerUtils.cpp")
+  
+  Main.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Main.cpp")
+  
+  PrintErr.cpp
+  Reader.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Reader.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Reader.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Reader.cpp(54,23): warning C4018: <: несоответствие типов со знаком и без знака
+  User.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "User.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "User.cpp")
+  
+  Создание кода
+  7 of 845 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    6 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe
