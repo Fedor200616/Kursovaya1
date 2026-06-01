@@ -40,9 +40,10 @@ C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несо
 C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
   (компиляция исходного файла "User.cpp")
   
+C:\Users\I\source\repos\Kursovaya1\User.cpp(185,19): warning C4834: удаление возвращаемого значения функции с атрибутом [[nodiscard]]
   Создание кода
-  7 of 845 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
+  2 of 942 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe

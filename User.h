@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <conio.h>
+#include <windows.h>
 #include <filesystem>
 #include "Main.h"
 #include "PrintErr.h"
@@ -51,6 +52,19 @@ int GetUserInfo(const int DIFF, const std::string text, const int *interval, int
 /// <param name="arg_num">число параметров, доступных пользователю</param>
 /// <returns>выбор пользователя</returns>
 int GetUserOpinion(int arg_num);
+
+/// <summary>
+/// Функция вызова окна сохранения файла через проводник Windows
+/// </summary>
+/// <returns></returns>
+std::filesystem::path SaveFileDialog();
+
+/// <summary>
+/// Функция выбора пользователем места для сохранения файла с результатами, предлагает 3 варианта: сохранить в папке с проверяемым файлом, сохранить в папке по умолчанию (рабочая папка программы), выбрать папку для сохранения через проводник Windows
+/// </summary>
+/// <param name="filepath">Путь к проверяемому файлу</param>
+/// <returns>путь расположения тектового файла отчета</returns>
+std::filesystem::path place_to_save(const std::filesystem::path& filepath);
 
 /// <summary>
 /// Функция печати результатов

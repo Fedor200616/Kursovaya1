@@ -57,7 +57,6 @@ int AnaliseIterator(std::vector<string_info>& info) {
     if (!info.back().brackets.empty()) {
         FindEndBrackets(info);
     }
-    (info);
    
     return 0;
 }

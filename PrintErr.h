@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <conio.h>
+#include <filesystem>
+#include <fstream>
 #include "main.h"
 
 #ifndef PRINTERR_H
@@ -118,5 +120,8 @@ std::string delete_tab(const std::string& s);
 /// <param name="s">строка из анализируемой программы</param>
 /// <returns>„исло на которое сдвинута строка табул€цией</returns>
 int offset(const std::string& s);
+
+
+void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_percent>& comm_vec, const std::filesystem::path& filepath);
 
 #endif

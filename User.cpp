@@ -8,6 +8,11 @@
 Settings setting;
 int main_func() {
 	int file_choose = 1;
+	std::cout << "Программа для проверки количества комментариев в коде \n"
+		<< "Автор: Почтарев Федор \n"
+		<< "Группа: М7О-206БВ-24 \n"
+		<< "Для продолжения нажмите любую кнопку.\n";
+	int user_enter = _getch();
 	while (file_choose == 1) {
 		system("cls");
 		errors.clear();
@@ -108,8 +113,10 @@ int GetUserInfo(const int DIFF, const std::string text, const int *interval, int
 
 int GetUserOpinion(int arg_num) {
 	int correct = 0;
-	std::cout << "\nНажмите Enter чтобы выбрать другой файл \n"
+	std::cout << "Чтобы вывести информацию в файл нажмите " << arg_num + 1 << '\n' <<
+		"\nНажмите Enter чтобы выбрать другой файл \n"
 		<< "Нажмите Esc, чтоб выйти из программы \n";
+	int real_arg_num = arg_num + 1;
 	while (!correct) {
 		int key = _getch();
 		switch (key)
@@ -117,8 +124,12 @@ int GetUserOpinion(int arg_num) {
 		case '1':
 			return 1;
 		case '2':
-			if (arg_num == 2)
+			if (real_arg_num >= 2 && real_arg_num <= 3)
 				return 2;
+			break;
+		case '3':
+			if (real_arg_num == 3)
+				return 3;
 			break;
 		case 13:
 			return 13;
@@ -128,6 +139,73 @@ int GetUserOpinion(int arg_num) {
 			break;
 		}
 
+	}
+}
+
+std::filesystem::path SaveFileDialog(const std::filesystem::path& filepath) {  // Вызов диалоговго окна выбора файла через проводник
+	std::wstring defaultName = filepath.stem().wstring() + L"_errors.txt";
+	wchar_t filename[MAX_PATH];
+	wcsncpy_s(filename, defaultName.c_str(), MAX_PATH - 1);
+	filename[MAX_PATH - 1] = L'\0';
+
+	std::filesystem::path root = fs::current_path().root_directory();
+
+	OPENFILENAME ofn;
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFilter = L"Text Files\0*.txt\0*.*\0";
+	ofn.lpstrDefExt = L"txt";
+
+	ofn.lpstrFile = filename;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.lpstrTitle = L"Сохранить файл как";  //заголовок
+
+	ofn.lpstrInitialDir = root.c_str();
+	ofn.Flags = OFN_DONTADDTORECENT | OFN_OVERWRITEPROMPT;
+
+	if (GetSaveFileNameW(&ofn)) {
+		//std::cout << "Сохраняем в: " << filename << "\n";
+		return std::filesystem::path(filename);
+	}
+	else {
+		std::cout << "You cancelled.\n";
+		return "0";
+	}
+}
+
+std::filesystem::path place_to_save(const std::filesystem::path& filepath) {
+	std::cout << "Выберите место для сохранения отчета \n"
+		<< "1. Сохранить в той же папке, что и проверяемый файл\n"
+		<< "2. Сохранить в папке с программой (exe)\n"
+		<< "3. Выбрать папку для сохранения\n\n"
+		<< "Нажмите Esc чтоб вернуться в меню обработки файла \n";
+	int user_enter = 0;
+	std::filesystem::current_path();
+	
+	while (true) {
+		user_enter = _getch();
+		switch (user_enter) {
+		case '1':
+            return filepath.parent_path() / (filepath.stem().wstring() + L"_errors.txt");
+			break;
+		case '2': {
+			wchar_t exePath[MAX_PATH];
+			GetModuleFileNameW(NULL, exePath, MAX_PATH);
+			std::filesystem::path exeDir = std::filesystem::path(exePath).parent_path();
+			return exeDir / (filepath.stem().wstring() + L"_errors.txt");
+			break;
+		}
+		case '3':
+			return SaveFileDialog(filepath);
+			break;
+		case '27':
+			return "";
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -141,24 +219,32 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 		std::cout << "Найдено ошибок: " << err_size << '\n';
 
 		bool interv_err = 0;
+		int need_to_export = 0;
 		if (intervals.size() == 0) {
 			std::cout << "Количество комментариев соответствует требованию \n \n";
 			if (err_size != 0) {
-				std::cout << "Чтобы посмотреть ошибки нажмите 1 \n";
+				std::cout << "Чтобы посмотреть ошибки нажмите 1 \n"
+					<< "Чтобы вывести результат в файл нажмите 2\n";
 				user_enter = GetUserOpinion(1);
 				if (user_enter == 1)
 					print_error();
+				else if (user_enter == 2)
+					ExportError(errorInfo, intervals, filepath);
 				else if (user_enter == 13)
 					return;
 				else if (user_enter == 27)
 					std::exit(0);
 			}
-			else
+			else {
+				
 				user_enter = GetUserOpinion(0);
-			if (user_enter == 13)
-				return;
-			else if (user_enter == 27)
-				std::exit(0);
+				if (user_enter == 13)
+					return;
+				else if (user_enter == 1)
+					ExportError(errorInfo, intervals, filepath);
+				else if (user_enter == 27)
+					std::exit(0);
+			}
 		}
 		else {
 			std::cout << "Есть интервалы, с малым количеством комментариев \n \n"
@@ -170,7 +256,9 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 				if (user_enter == 1)
 					CommPercentPrint(intervals, ref_interval, fileLines.size());
 				else if (user_enter == 2)
-					print_error();
+					need_to_export = print_error();
+				else if (user_enter == 3)
+					ExportError(errorInfo, intervals, filepath);
 				else if (user_enter == 13)
 					return;
 				else if (user_enter == 27)
@@ -180,6 +268,8 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 				user_enter = GetUserOpinion(1);
 				if (user_enter == 1)
 					CommPercentPrint(intervals, ref_interval, fileLines.size());
+				else if (user_enter == 2)
+					ExportError(errorInfo, intervals, filepath);
 				else if (user_enter == 13)
 					return;
 				else if (user_enter == 27)
@@ -188,8 +278,6 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 		}
 		system("cls");
 	} while (1);
-		
-
 
 	CommPercentPrint(intervals, ref_interval, fileLines.size());
 	print_error();
