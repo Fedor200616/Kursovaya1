@@ -84,8 +84,8 @@ void handleNormal(AnalysisContext& ctx) {
         brack inf = { ctx.ch, ctx.i }; // unsigned char -> char но проверка IsBracket должна убрать UB
         if (ctx.ch == ')' && ctx.real_prev == ',')
             ctx.addError(err_info::err_type::MISSING_ARGUMENT, ctx.real_prev);
-        if (ctx.ch == '}' && ctx.real_prev == ';')
-            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
+        //if (ctx.ch == '}' && ctx.real_prev == ';')
+        //    ctx.addError(err_info::err_type::INVALID_CONSTRUCTION, ctx.real_prev);
         BracketChecker(ctx.str_info, inf);
     }
 
@@ -200,7 +200,9 @@ void handleIsNumber(AnalysisContext& ctx) {
         (tolower(ctx.prev) == 'e') &&
         (ctx.ch == '+' || ctx.ch == '-'));
     bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
-        (isspace(ctx.ch) || IsOperator(ctx.ch) || IsBracket(ctx.ch) || ctx.ch == ';' || ctx.ch == ',');
+        (isspace(ctx.ch) || IsOperator(ctx.ch) || IsBracket(ctx.ch) ||
+            ctx.ch == ';' || ctx.ch == ',' || ctx.ch == '_');
+
     if (EndOfNum) {
         ctx.state_change(State::Normal);
         ctx.iminus();
@@ -416,17 +418,21 @@ void recent(const string_info& prev, string_info& str_info) {
 
 std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, const int ref_percent, const int interval) {
     std::vector<comm_percent> not_comp_inter;
-    for (int i = 0; i < Info.size() / interval; i++) {
+    int total_lines = static_cast<int>(Info.size()) - 1; // пропускаем нулевую строку
+    int num_intervals = (total_lines + interval - 1) / interval; // округление вверх
+
+    for (int i = 0; i < num_intervals; i++) {
+        int start = i * interval + 1;
+        int end = std::min(start + interval - 1, total_lines);
         int count = 0;
-        for (int j = (interval * i) + 1; j <= interval * (i + 1) && j < Info.size(); j++) {
-            //if (j == 0);
+        int real_size = end - start + 1;
+        for (int j = start; j <= end; j++) {
             if (Info[j].have_comment != 0)
                 count++;
         }
-        int real_size = std::min(interval, (int)Info.size() - i * interval);
-        int percent = count * 100 / real_size;
+        int percent = real_size > 0 ? count * 100 / real_size : 0;
         if (percent < ref_percent) {
-            not_comp_inter.push_back({i, percent});
+            not_comp_inter.push_back({ i, percent });
         }
     }
     return not_comp_inter;

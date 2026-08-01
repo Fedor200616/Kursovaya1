@@ -14,11 +14,10 @@ int print_error(const std::vector<err_info>& errors) {
 			<< delete_tab(fileLines[err.position.line].str) << '\n';
 
 		int caret_pos = err.position.num - offset(fileLines[err.position.line].str);
+		if (caret_pos < 0) caret_pos = 0; // Защита от вылета
 		std::cout << std::string(caret_pos, ' ') << "^\n";
 	}
-	std::cout << "Нажмите 1, для вывода информации в файл\n"
-		<< '\n'
-		<< "Нажмите Enter чтобы продолжить";
+	std::cout << "\nНажмите Enter чтобы продолжить\n";
 	int user_choose = _getch();
 	if (user_choose == '1')
 		return 1;
@@ -75,8 +74,10 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 		return;
 	}
 	outFile << "Информация о файле: " << std::filesystem::absolute(filepath).string() << "\n\n";
+	outFile << "Пороговый процент комментариев: " << setting.ref_percent << '\n'  <<
+		"Интервал оценивания: " << setting.ref_interval << '\n';
 	outFile << "Интервалов с малым количеством комментариев: " << comm_vec.size() << "\n\n";
-	int interval_size = setting.ref_inteval;
+	int interval_size = setting.ref_interval;
 	int fileinfosize = fileLines.size() - 1; // -1 потому что нулевая строка не используется
 	for (size_t i = 0; i < comm_vec.size(); i++) {
 		int start = comm_vec[i].interval * interval_size + 1;
@@ -94,6 +95,7 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 			<< "}, Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n'
 			<< delete_tab(fileLines[err.position.line].str) << '\n';
 		int caret_pos = err.position.num - offset(fileLines[err.position.line].str);
+		if (caret_pos < 0) caret_pos = 0; // Защита от вылета
 		outFile << std::string(caret_pos, ' ') << "^\n";
 	}
 	outFile << "Конец отчета\n";

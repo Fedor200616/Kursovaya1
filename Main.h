@@ -1,12 +1,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
 #include "Classes.h"
 
 #ifndef MAIN_H
 #define MAIN_H
 
 //namespace fs = std::filesystem;
+extern std::filesystem::path exe_filepath;
 
 struct brack {
 		char bracket;

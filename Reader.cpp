@@ -4,7 +4,7 @@
 #include "Chrono.h"
 #include "LexerUtils.h"
 
-std::optional<fs::path> OpenFileDialog() {  // Вызов диалоговго окна выбора файла через проводник
+fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через проводник
     wchar_t filename[MAX_PATH];
     fs::path root = fs::current_path().root_directory();
 
@@ -14,20 +14,30 @@ std::optional<fs::path> OpenFileDialog() {  // Вызов диалоговго окна выбора файл
 
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrFilter = L"C++\0*.cpp;*.c\0Headers\0*.h";  //фильтруем на cpp
+    ofn.lpstrFilter = L"C++\0*.cpp;*.c\0Headers\0*.h";
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrTitle = L"Выберите файл";  //заголовок
+    ofn.lpstrTitle = L"Выберите файл";
     ofn.lpstrInitialDir = root.c_str();
-    ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST; //Флаги не добавлять несуществующий, не делать недавним 
+    ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
     if (GetOpenFileNameW(&ofn)) {
-        std::wcout << L"You chose the file \"" << filename << L"\"\n";
-        return fs::path(filename);
+        fs::path selected(filename);
+        auto ext = selected.extension().string();
+        // Приводим расширение к нижнему регистру для универсальности
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext == ".c" || ext == ".cpp" || ext == ".h") {
+            std::wcout << L"You chose the file \"" << filename << L"\"\n";
+            return selected;
+        }
+        else {
+            std::wcout << L"Ошибка: выберите файл с расширением .c, .cpp или .h\n";
+            return fs::path{};
+        }
     }
     else {
         std::wcout << L"You cancelled.\n";
-        return std::nullopt;
+        return fs::path{}; // Пустой путь
     }
 }
 

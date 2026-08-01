@@ -1,0 +1,45 @@
+﻿  Chrono.cpp
+  Main.cpp
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(65,14): warning C4309: инициализация: усечение константного значения
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Main.cpp(25,23): warning C4309: инициализация: усечение константного значения
+  PrintErr.cpp
+C:\Users\I\source\repos\Kursovaya1\User.h(65,14): warning C4309: инициализация: усечение константного значения
+  (компиляция исходного файла "PrintErr.cpp")
+  
+  UserInterface.cpp
+C:\Users\I\source\repos\Kursovaya1\User.h(65,14): warning C4309: инициализация: усечение константного значения
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(107,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\Analyse.h(115,23): warning C4018: <: несоответствие типов со знаком и без знака
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(184,19): warning C4834: удаление возвращаемого значения функции с атрибутом [[nodiscard]]
+  Создание кода...
+C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(147,1): warning C4715: GetUserOpinion: значение возвращается не при всех путях выполнения
+C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(116,1): warning C4715: GetUserInfo: значение возвращается не при всех путях выполнения
+LexerUtils.obj : error LNK2005: "class std::filesystem::path exe_filepath" (?exe_filepath@@3Vpath@filesystem@std@@A) уже определен в Analyse.obj
+Main.obj : error LNK2005: "class std::filesystem::path exe_filepath" (?exe_filepath@@3Vpath@filesystem@std@@A) уже определен в Analyse.obj
+PrintErr.obj : error LNK2005: "unsigned char menu_enter_param" (?menu_enter_param@@3EA) уже определен в Main.obj
+PrintErr.obj : error LNK2005: "unsigned char menu_out" (?menu_out@@3EA) уже определен в Main.obj
+PrintErr.obj : error LNK2005: "char index" (?index@@3DA) уже определен в Main.obj
+PrintErr.obj : error LNK2005: "class std::filesystem::path exe_filepath" (?exe_filepath@@3Vpath@filesystem@std@@A) уже определен в Analyse.obj
+Reader.obj : error LNK2005: "class std::filesystem::path exe_filepath" (?exe_filepath@@3Vpath@filesystem@std@@A) уже определен в Analyse.obj
+UserInterface.obj : error LNK2005: "unsigned char menu_enter_param" (?menu_enter_param@@3EA) уже определен в Main.obj
+UserInterface.obj : error LNK2005: "unsigned char menu_out" (?menu_out@@3EA) уже определен в Main.obj
+UserInterface.obj : error LNK2005: "char index" (?index@@3DA) уже определен в Main.obj
+UserInterface.obj : error LNK2005: "class std::filesystem::path exe_filepath" (?exe_filepath@@3Vpath@filesystem@std@@A) уже определен в Analyse.obj
+Main.obj : error LNK2001: неразрешенный внешний символ "struct Settings setting" (?setting@@3USettings@@A).
+PrintErr.obj : error LNK2001: неразрешенный внешний символ "struct Settings setting" (?setting@@3USettings@@A).
+UserInterface.obj : error LNK2001: неразрешенный внешний символ "struct Settings setting" (?setting@@3USettings@@A).
+C:\Users\I\source\repos\Kursovaya1\Debug\Kursovaya1.exe : fatal error LNK1120: неразрешенных внешних элементов: 1

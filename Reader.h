@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 /// Открывает окно выбора файла через проводник Windows
 /// </summary>
 /// <returns>Путь к выбранному файлу</returns>
-std::optional<fs::path> OpenFileDialog();
+std::filesystem::path OpenFileDialog();
 
 /// <summary>
 /// Считывает файл построчно и сохраняет строки в вектор

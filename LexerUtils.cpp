@@ -13,7 +13,7 @@ bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char r
         if (real_prev == '+' && ch == '+') return 1;
         if (real_prev == '-' && ch == '-') return 1;
         if (real_prev == '-' && ch == '>') return 1;
-        if (real_prev == '&' && ch == '&') return 1;
+        //if (real_prev == '&' && ch == '&') return 1;
         if (real_prev == '|' && ch == '|') return 1;
         if (real_prev == ':' && ch == ':') return 1;
         if (real_prev == '<' && ch == '<') return 1;
@@ -22,11 +22,10 @@ bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char r
         return 0; // В остальных случаях пробел между знаками (напр. "a + -1") допустим
     }
 
-    switch (real_prev) { // Если знаки стоят вплотную, проверяем на допустимость комбинации
-        // Разрешенные пары (Белый список)
+    switch (real_prev) { 
     case '+': if (ch == '+' || ch == '=') return 0; break;
     case '-': if (ch == '-' || ch == '=' || ch == '>') return 0; break;
-    case '*': if (ch == '=' || ch == '*') return 0; break;
+    case '*': if (ch == '=' || ch == '*' || ch == '>') return 0; break;
     case '/': if (ch == '=') return 0; break;
     case '=': if (ch == '=') return 0; break;
     case '!': if (ch == '=') return 0; break;
@@ -36,7 +35,7 @@ bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char r
     case '|': if (ch == '=' || ch == '|') return 0; break;
     case '%': if (ch == '=') return 0; break;
     case '^': if (ch == '=') return 0; break;
-    case ':': if (ch == ':') return 0; break;
+    case ':': if (ch == ':' || ch == '~') return 0; break;
     default: break;
     }
 
