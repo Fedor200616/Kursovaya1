@@ -88,7 +88,7 @@ int GetUserInfo(const int DIFF, const std::string text, const int* interval, int
 			<< " <" << user_enter << "> "
 			<< "Используйте стрелки вправо/влево для изменения \n"
 			<< "Нажмите Enter чтобы продолжить \n"
-			<< "Нажмите Esc, для отмены \n";
+			<< "Нажмите Esc, для отмены изменений и возврата в главное меню \n";
 		do {
 			correct = 0;
 			key user_choose = int_to_key(_getch());

@@ -1,7 +1,7 @@
-#include "Main.h"
 #include "Analyse.h"
-#include "PrintErr.h"
 #include "LexerUtils.h"
+#include "Main.h"
+#include "PrintErr.h"
 
 void analyse(const string_info& prev_str, string_info& str_info) {
     
@@ -423,7 +423,7 @@ std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, cons
 
     for (int i = 0; i < num_intervals; i++) {
         int start = i * interval + 1;
-        int end = std::min(start + interval - 1, total_lines);
+        int end = std::min((start + interval - 1), total_lines);
         int count = 0;
         int real_size = end - start + 1;
         for (int j = start; j <= end; j++) {

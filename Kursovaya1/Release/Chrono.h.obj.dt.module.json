@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Kursovaya1\\Release\\Chrono.obj",
+            "outputs": [
+                "Kursovaya1\\Release\\Chrono.h.obj.dt.module.json",
+                "Kursovaya1\\Release\\Chrono.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

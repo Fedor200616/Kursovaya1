@@ -10,9 +10,9 @@
 
 namespace fs = std::filesystem;
 
-extern unsigned char menu_enter_param;
-extern unsigned char menu_out;
-enum MenuAction : unsigned char
+extern unsigned char menu_enter_param; // Параметры, выбранные и позволяющие идти дальше
+extern unsigned char menu_out; // Параметры необходимые для отображения в меню
+enum MenuAction : unsigned char // Биты, соответствующие действиям в меню
 {
 	SelectFile = 0x80,
 	SetPercent = 0x40,
@@ -21,7 +21,7 @@ enum MenuAction : unsigned char
 	Exit = 0x08
 };
 
-enum class key {
+enum class key { // Коды клавиш
 	Up = 72,
 	Down = 80,
 	Left = 75,
@@ -31,6 +31,12 @@ enum class key {
 	Utility = 224,
 	Null = 0,
 };
+
+/// <summary>
+/// Функция преобразования кода клавиши в enum ke
+/// </summary>
+/// <param name="int_key">Код клавиши</param>
+/// <returns>Клавиша типа Key</returns>
 inline key int_to_key(int int_key) {
 	switch (int_key) {
 	case 72:
@@ -52,14 +58,14 @@ inline key int_to_key(int int_key) {
 	}
 }
 
-struct Settings {
-	fs::path filepath = "";
+struct Settings { // Структура настроек
+	fs::path filepath = ""; // Путь к проверяемому файлу
 
-	int ref_percent = 10;
-	int ref_interval = 20;
+	int ref_percent = 10; // Минимальный процент комментариев
+	int ref_interval = 20; // Интервал проверки количества комментариев
 
-	const int PERCENT_DIFF = 5;
-	const int PERCENT_RANGE[2] = { 0, 100 };
+	const int PERCENT_DIFF = 5; // Шаг выбора процента комментариев
+	const int PERCENT_RANGE[2] = { 0, 100 }; // Диапазон выбора процента комментариев
     const std::string percent_dialog = "Введите минимальный процент комментариев (от " + std::to_string(PERCENT_RANGE[0]) + " до " + std::to_string(PERCENT_RANGE[1]) + "): ";
 	const int INTERVAL_DIFF = 2;
 	const int INTERVAL_RANGE[2] = { 9, 41 };
@@ -67,12 +73,20 @@ struct Settings {
 };
 inline Settings setting;
 
-
+/// <summary>
+/// Функция отображения меню с возможностью выбора пользователем параметров
+/// </summary>
+/// <param name="act_index">Индекс текущего выбранного элемента</param>
+/// <param name="set">Структура настроек</param>
+/// <param name="menu">Массив строк меню</param>
+/// <param name="size">Размер массива меню</param>
 void show_menu(unsigned char act_index, Settings set, const std::string menu[], const int size);
 
+/// <summary>
+/// Функция навигации в меню
+/// </summary>
+/// <returns>Выбранный элемент меню</returns>
 unsigned char menu_navigation();
-
-
 
 /// <summary>
 /// Функция выбора пользователем пределов в оценке

@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Kursovaya1\\Release\\UserInterface.obj",
+            "outputs": [
+                "Kursovaya1\\Release\\UserInterface.cpp.obj.dt.module.json",
+                "Kursovaya1\\Release\\UserInterface.cpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

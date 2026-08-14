@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Kursovaya1\\Release\\PrintErr.obj",
+            "outputs": [
+                "Kursovaya1\\Release\\PrintErr.cpp.obj.dt.module.json",
+                "Kursovaya1\\Release\\PrintErr.cpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}
