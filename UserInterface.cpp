@@ -4,79 +4,7 @@
 #include "Chrono.h"
 #include "PrintErr.h"
 #include "Analyse.h"
-
-const int MENU_SIZE = 5;
-const std::string act_mark = "->";
-const std::string inact_mark = "  ";
-const std::string MENU[MENU_SIZE] = {
-	"Выбрать файл для анализа ",
-	"Процент комментариев: ",
-	"Интервал оценивания: ",
-	"Продолжить",
-	"Выход"
-};
-unsigned char menu_enter_param = 0b01100000; //изначально неизвестен файл для анализа, но известны процент и интервал по умолчанию
-unsigned char menu_out = 0b10001000; //изначально выводим только "Выбрать файл для анализа" и "Выход"
-
-
-
-void show_menu(unsigned char act_index, Settings set, const std::string menu[], const int size) {
-	system("cls");
-	std::ostringstream out_buffer;
-	if (menu_enter_param & 0x80) { // Если файл для анализа выбран, то выводим все пункты меню
-		menu_out |= 0x78; // Устанавливаем биты для всех пунктов меню
-	}
-	for (int i = 0; i < size; i++) {
-		unsigned char mask = 0x80 >> i; // Маска для проверки заданности параметра
-		if (menu_out & mask) {
-			if (mask & act_index) {
-				out_buffer << act_mark << menu[i]; // Выводим типа ->Выбрать файл для анализа
-			}
-			else {
-				out_buffer << inact_mark << menu[i];
-			}
-			bool is_param_set = menu_enter_param & mask; // Проверяем, установлен ли параметр
-			if (i == 0 && is_param_set) {
-				out_buffer << set.filepath; // Добавляем к строке путь к файлу
-			}
-			else if (i == 1 && is_param_set) {
-				out_buffer << set.ref_percent << "%"; // Добавляем к строке процент или интервал
-			}
-			else if (i == 2 && is_param_set) {
-				out_buffer << set.ref_interval;
-			}
-			out_buffer << '\n';
-		}
-	}
-	std::cout << out_buffer.str() << std::endl;
-}
-
-unsigned char menu_navigation() {
-	static unsigned char index = 0x80;
-	while (true)
-	{
-		show_menu(index, setting, MENU, MENU_SIZE);
-		switch (int_to_key(_getch()))
-		{
-		case key::Enter:
-			return index;
-		case key::Up:
-			do {
-				index = (index == 0x80) ? 0x08 : index << 1;
-			} while (!(index & menu_out));
-			break;
-
-		case key::Down:
-			do {
-				index = (index == 0x08) ? 0x80 : index >> 1;
-			} while (!(index & menu_out));
-			break;
-
-		case key::Esc:
-			return 0x08;
-		}
-	}
-}
+#include "Menu.h"
 
 int GetUserInfo(const int DIFF, const std::string text, const int* interval, int user_enter) {
 	int buff = user_enter;
@@ -186,7 +114,6 @@ fs::path place_to_save(const fs::path& filepath) {
 		<< "3. Выбрать папку для сохранения\n\n"
 		<< "Нажмите Esc чтоб вернуться в меню обработки файла \n";
 	int user_enter = 0;
-	fs::current_path();
 	
 	while (true) {
 		user_enter = _getch();
@@ -285,3 +212,14 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 	print_error();
 }
 
+void RetrunResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const std::filesystem::path& filepath){
+	std::string BeforeMenu = "Файл: " + filepath.string() + "\n" +
+		"Найдено ошибок: " + std::to_string(errorInfo.size()) + "\n\n" +
+
+		"Пороговый процент комментариев: " + std::to_string(setting.ref_percent) + '\n' +
+		"Интервал оценивания: " + std::to_string(setting.ref_interval) + "\n\n";
+
+
+}
+
+//Программа не проверяет файл заново после выбора нового файла, а сразу выводит результат предыдущей проверки. Нужно добавить проверку нового файла и вывод результата для него.

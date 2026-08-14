@@ -171,10 +171,7 @@
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\conio.h",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.51.36231\\include\\fstream",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_filebuf.hpp",
-            "c:\\users\\i\\source\\repos\\kursovaya1\\main.h",
-            "c:\\users\\i\\source\\repos\\kursovaya1\\lexerutils.h",
-            "c:\\users\\i\\source\\repos\\kursovaya1\\main.h",
-            "c:\\users\\i\\source\\repos\\kursovaya1\\main.h"
+            "c:\\users\\i\\source\\repos\\kursovaya1\\lexerutils.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

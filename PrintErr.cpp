@@ -36,7 +36,7 @@ int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_siz
 
 	}
 	std::cout << "Для продолжения нажмите любую кнопку.";
-	_getch();
+	int key = _getch();
 	return 0;
 }
 
@@ -70,7 +70,7 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 	if (!outFile.is_open()) {
 		std::cerr << "Error opening file for writing: " << path.stem().string() + "_errors.txt" << std::endl;
 		std::cout << "Нажмите любую кнопку чтобы продолжить\n";
-		_getch();
+		int key = _getch();
 		return;
 	}
 	outFile << "Информация о файле: " << std::filesystem::absolute(filepath).string() << "\n\n";

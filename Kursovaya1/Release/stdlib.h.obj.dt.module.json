@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Kursovaya1\\Release\\stdlib.obj",
+            "outputs": [
+                "Kursovaya1\\Release\\stdlib.h.obj.dt.module.json",
+                "Kursovaya1\\Release\\stdlib.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

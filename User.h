@@ -10,54 +10,6 @@
 
 namespace fs = std::filesystem;
 
-extern unsigned char menu_enter_param; // Параметры, выбранные и позволяющие идти дальше
-extern unsigned char menu_out; // Параметры необходимые для отображения в меню
-enum MenuAction : unsigned char // Биты, соответствующие действиям в меню
-{
-	SelectFile = 0x80,
-	SetPercent = 0x40,
-	SetInterval = 0x20,
-	Continue = 0x10,
-	Exit = 0x08
-};
-
-enum class key { // Коды клавиш
-	Up = 72,
-	Down = 80,
-	Left = 75,
-	Right = 77,
-	Enter = 13,
-	Esc = 27,
-	Utility = 224,
-	Null = 0,
-};
-
-/// <summary>
-/// Функция преобразования кода клавиши в enum ke
-/// </summary>
-/// <param name="int_key">Код клавиши</param>
-/// <returns>Клавиша типа Key</returns>
-inline key int_to_key(int int_key) {
-	switch (int_key) {
-	case 72:
-		return key::Up;
-	case 80:
-		return key::Down;
-	case 75:
-		return key::Left;     
-	case 77:
-		return key::Right;    
-	case 13:
-		return key::Enter;
-	case 27:
-		return key::Esc;
-	case 224:
-		return key::Utility;  
-	default:
-		return key::Null;
-	}
-}
-
 struct Settings { // Структура настроек
 	fs::path filepath = ""; // Путь к проверяемому файлу
 

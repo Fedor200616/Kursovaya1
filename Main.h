@@ -1,11 +1,10 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
 #include <filesystem>
 #include "Classes.h"
 
-#ifndef MAIN_H
-#define MAIN_H
 
 //namespace fs = std::filesystem;
 extern std::filesystem::path exe_filepath;
@@ -45,5 +44,4 @@ const string_info empty_str_info{};
 
 extern std::vector<string_info> fileLines;
 
-#endif
 

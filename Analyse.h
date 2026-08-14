@@ -104,7 +104,7 @@ struct AnalysisContext {
         : str_info(str), i(curr_i), real_prev(rp), state(st), num(n), quote(q), preproc(p) {
         ch = str.str[i];
         prev = (i > 0) ? str.str[i - 1] : '\0';
-        next = (i + 1 < str.str.size()) ? str.str[i + 1] : '\0';
+        next = (i + 1 < static_cast<int>(str.str.size())) ? str.str[i + 1] : '\0';
 
     }
 
@@ -112,7 +112,7 @@ struct AnalysisContext {
     {
         ch = str_info.str[i];
         prev = (i > 0) ? str_info.str[i - 1] : '\0';
-        next = (i + 1 < str_info.str.size()) ? str_info.str[i + 1] : '\0';
+        next = (i + 1 < static_cast<int>(str_info.str.size())) ? str_info.str[i + 1] : '\0';
     }
 
     // Вспомогательные методы, чтобы не писать длинные пути

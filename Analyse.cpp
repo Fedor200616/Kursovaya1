@@ -21,7 +21,7 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     int i = 0;
     AnalysisContext context = AnalysisContext(str_info, i, real_prev, state, numparam, quote_info, preproc);
 
-    for (; i < str_info.str.size(); i++)
+    for (; i < static_cast<int>(str_info.str.size()); i++)
     {   
         context.refresh();
         int comment_type = 0;

@@ -1,7 +1,8 @@
-﻿  Создание кода
+﻿  UserInterface.cpp
+  Создание кода
   Previous IPDB and IOBJ mismatch, fall back to full compilation.
-C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(152): warning C4715: GetUserOpinion: значение возвращается не при всех путях выполнения
-C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(121): warning C4715: GetUserInfo: значение возвращается не при всех путях выполнения
-  All 1007 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(80): warning C4715: GetUserOpinion: значение возвращается не при всех путях выполнения
+C:\Users\I\source\repos\Kursovaya1\UserInterface.cpp(49): warning C4715: GetUserInfo: значение возвращается не при всех путях выполнения
+  All 1201 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe

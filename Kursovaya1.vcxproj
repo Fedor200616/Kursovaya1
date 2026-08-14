@@ -135,6 +135,7 @@
     <ClCompile Include="Chrono.cpp" />
     <ClCompile Include="LexerUtils.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="PrintErr.cpp" />
     <ClCompile Include="Reader.cpp" />
     <ClCompile Include="UserInterface.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Classes.h" />
     <ClInclude Include="LexerUtils.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="PrintErr.h" />
     <ClInclude Include="Reader.h" />
     <ClInclude Include="User.h" />
