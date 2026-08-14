@@ -1,213 +1,240 @@
 #pragma once
-#include <functional>
-#include <vector>
+
 #include <conio.h>
+#include <functional>
 #include <iostream>
 #include <string>
-#include <sstream>
+#include <vector>
 
-enum class key // Физические клавиши
+// ============================================================
+// КЛАВИАТУРА
+// ============================================================
+
+enum class key
 {
     Up = 72,
     Down = 80,
     Left = 75,
     Right = 77,
+
     Enter = 13,
     Esc = 27,
+
     Utility = 224,
     Null = 0
 };
-/// <summary>
-/// Функция преобразования кода клавиши в enum ke
-/// </summary>
-/// <param name="int_key">Код клавиши</param>
-/// <returns>Клавиша типа Key</returns>
-inline key int_to_key(int int_key) {
-    switch (int_key) {
-    case 72:
-        return key::Up;
-    case 80:
-        return key::Down;
-    case 75:
-        return key::Left;
-    case 77:
-        return key::Right;
-    case 13:
-        return key::Enter;
-    case 27:
-        return key::Esc;
-    case 224:
-        return key::Utility;
+
+inline key int_to_key(int code)
+{
+    switch (code)
+    {
+    case 72:  return key::Up;
+    case 80:  return key::Down;
+    case 75:  return key::Left;
+    case 77:  return key::Right;
+    case 13:  return key::Enter;
+    case 27:  return key::Esc;
+    case 224: return key::Utility;
+
     default:
         return key::Null;
     }
 }
 
-enum class MenuAction // Универсальные действия самого меню
+
+// ============================================================
+// ДЕЙСТВИЯ МЕНЮ
+// ============================================================
+
+enum class MenuAction
 {
     None,
+
     MoveUp,
     MoveDown,
+
     ChangeLeft,
     ChangeRight,
+
     Select,
     Exit
 };
 
-enum class MainMenuAction // Действия конкретно главного меню
+
+// ============================================================
+// СОСТОЯНИЕ И ВНЕШНИЙ ВИД МЕНЮ
+// ============================================================
+
+struct MenuOut
 {
-    None,
-    OpenFile,
-    SetPercent,
-    SetInterval,
-    Continue,
-    Exit
+    // Текущий выбранный пункт.
+    // 0x80 = первый
+    // 0x40 = второй
+    // 0x20 = третий
+    // ...
+    unsigned char ActIndex = 0x80;
+
+    // Текст перед меню
+    std::string PreMenuMessage = "";
+
+    // Названия пунктов
+    std::vector<std::string> Menu;
+
+    // Функции, возвращающие параметры пунктов
+    std::vector<std::function<std::string()>> MenuParam;
+
+    // Текст после меню
+    std::string PostMenuMessage = "";
+
+    // Маркеры
+    std::string ActMark = "->";
+    std::string InactMark = "  ";
+
+    // Какие параметры уже установлены
+    unsigned char MenuEnterParam = 0xFF;
+
+    // Какие пункты вообще отображаются
+    unsigned char MenuOutParam = 0xFF;
 };
 
-struct MenuOut // Состояние и внешний вид меню
-{
-    unsigned char ActIndex = 0x80; // Бит текущего выбранного пункта
-    std::string PreMenuMessage = ""; // Сообщение перед меню
-    std::vector<std::string> Menu; // Названия пунктов меню
-    std::vector<std::function<std::string()>> MenuParam; // Функции, возвращающие актуальный параметр
-    std::string PostMenuMessage = ""; // Сообщение после меню
-    std::string ActMark = "->"; // Маркер активного пункта
-    std::string InactMark = "  "; // Маркер неактивного пункта
-    unsigned char MenuEnterParam = 0xFF; // Биты установленных параметров
-    unsigned char MenuOutParam = 0xFF; // Биты отображаемых пунктов
 
-    static MenuAction GetMenuAction(key key_code)// Преобразует клавишу в универсальное действие меню
+// ============================================================
+// БАЗОВАЯ ЛОГИКА МЕНЮ
+// ============================================================
+
+class MenuLogic
+{
+public:
+
+    virtual ~MenuLogic() = default;
+
+    // Преобразование физической клавиши
+    // в действие меню
+    MenuAction GetAction(key key_code) const
     {
         switch (key_code)
         {
         case key::Up:
-            return MenuAction::MoveUp; // Вверх
+            return MenuAction::MoveUp;
 
         case key::Down:
-            return MenuAction::MoveDown; // Вниз
+            return MenuAction::MoveDown;
 
         case key::Left:
-            return MenuAction::ChangeLeft; // Влево
+            return MenuAction::ChangeLeft;
 
         case key::Right:
-            return MenuAction::ChangeRight; // Вправо
+            return MenuAction::ChangeRight;
 
         case key::Enter:
-            return MenuAction::Select; // Выбрать
+            return MenuAction::Select;
 
         case key::Esc:
-            return MenuAction::Exit; // Выйти
+            return MenuAction::Exit;
 
         default:
-            return MenuAction::None; // Ничего
-        }
-    };
-};
-
-void show_menu(const MenuOut& menu);
-
-template <typename Logic> // Logic определяет конкретную логику меню
-typename Logic::Action menu_navigation(MenuOut& menu, Logic& logic) // Универсальная навигация по любому меню
-{
-    while (true) // Работаем до получения конечного действия
-    {
-		logic.BeforeShow(menu); // Вызываем метод логики перед отображением меню, чтобы обновить параметры
-
-        show_menu(menu); // Отображаем текущее состояние меню
-
-        key key_code = int_to_key(_getch());
-
-        MenuAction menu_action = MenuOut::GetMenuAction(key_code); 
-
-        auto action = logic.Process(menu, menu_action); // Передаём действие конкретной логике
-
-        if (action != Logic::Action::None) // Если логика вернула настоящее действие
-        {
-            return action; // Возвращаем его вызывающему коду
+            return MenuAction::None;
         }
     }
-}
 
-class MainMenuLogic // Логика главного меню
-{
-public:
-    using Action = MainMenuAction; // Тип действия, который возвращает эта логика
-
-	void BeforeShow(MenuOut& menu) // Вызывается перед отображением меню, можно использовать для обновления параметров
-	{
-		if(menu.MenuEnterParam & 0x80){
-			menu.MenuOutParam |= 0xF8; // Если файл выбран, показываем все пункты
-        }
-	}
-    Action Process(MenuOut& menu, MenuAction action) // Обрабатывает действие меню и возвращает действие программы
+    // Обработка обычной навигации
+    void ProcessNavigation(MenuOut& menu, MenuAction action)
     {
         switch (action)
         {
         case MenuAction::MoveUp:
-            MoveUp(menu); // Обрабатываем движение вверх
+            MoveUp(menu);
             break;
 
         case MenuAction::MoveDown:
-            MoveDown(menu); // Обрабатываем движение вниз
+            MoveDown(menu);
             break;
 
         case MenuAction::ChangeLeft:
-            ChangeLeft(menu); // Обрабатываем движение влево
+            ChangeLeft(menu);
             break;
 
         case MenuAction::ChangeRight:
-            ChangeRight(menu); // Обрабатываем движение вправо
+            ChangeRight(menu);
             break;
-
-        case MenuAction::Select:
-            return Select(menu); // Возвращаем действие выбранного пункта
-
-        case MenuAction::Exit:
-            return MainMenuAction::Exit; // Escape означает выход из меню
 
         default:
             break;
         }
-
-        return MainMenuAction::None; // Продолжаем работу меню
     }
+
+    // Enter.
+    // Конкретное меню само решает, что возвращать.
+    virtual int Select(MenuOut& menu) = 0;
+
+    // Вызывается перед каждым отображением.
+    virtual void BeforeShow(MenuOut& menu)
+    {}
+
+protected:
+
+    void MoveUp(MenuOut& menu)
+    {
+        if (menu.Menu.empty())
+            return;
+
+        do
+        {
+            if (menu.ActIndex == 0x80)
+                menu.ActIndex = GetLastBit(menu);
+            else
+                menu.ActIndex <<= 1;
+
+        } while (!(menu.ActIndex & menu.MenuOutParam));
+    }
+
+
+    void MoveDown(MenuOut& menu)
+    {
+        if (menu.Menu.empty())
+            return;
+
+        do
+        {
+            if (menu.ActIndex == GetLastBit(menu))
+                menu.ActIndex = 0x80;
+            else
+                menu.ActIndex >>= 1;
+
+        } while (!(menu.ActIndex & menu.MenuOutParam));
+    }
+
+
+    virtual void ChangeLeft(MenuOut&)
+    {}
+
+    virtual void ChangeRight(MenuOut&)
+    {}
+
 
 private:
-    void MoveUp(MenuOut& menu) { // Перемещает выбор вверх
-        do
-        {
-            menu.ActIndex = (menu.ActIndex == 0x80) ? 0x08 : menu.ActIndex << 1; // Переходим к предыдущему пункту
-        } while (!(menu.ActIndex & menu.MenuOutParam)); // Пропускаем скрытые пункты
-    }
-    void MoveDown(MenuOut& menu) {
-        do
-        {
-            menu.ActIndex = (menu.ActIndex == 0x08) ? 0x80 : menu.ActIndex >> 1; // Переходим к следующему пункту
-        } while (!(menu.ActIndex & menu.MenuOutParam)); // Пропускаем скрытые пункты
-    }
-    void ChangeLeft(MenuOut& menu) {}
-    void ChangeRight(MenuOut& menu) {}
-    Action Select(MenuOut& menu) { // Обрабатывает выбор пункта меню
-        switch (menu.ActIndex)
-        {
-        case 0x80:
-            return MainMenuAction::OpenFile; // Выбран пункт открытия файла
 
-        case 0x40:
-            return MainMenuAction::SetPercent; // Выбран процент комментариев
+    unsigned char GetLastBit(const MenuOut& menu) const
+    {
+        if (menu.Menu.empty())
+            return 0;
 
-        case 0x20:
-            return MainMenuAction::SetInterval; // Выбран интервал
-
-        case 0x10:
-            return MainMenuAction::Continue; // Выбран запуск анализа
-
-        case 0x08:
-            return MainMenuAction::Exit; // Выбран выход
-
-        default:
-            return MainMenuAction::None; // Ничего не выбрано
-        }
+        return static_cast<unsigned char>(
+            0x80 >> (menu.Menu.size() - 1)
+            );
     }
 };
 
+
+// ============================================================
+// ОТОБРАЖЕНИЕ
+// ============================================================
+
+void show_menu(const MenuOut& menu);
+
+
+// ============================================================
+// ОСНОВНОЙ ЦИКЛ МЕНЮ
+// ============================================================
+
+int menu_navigation(MenuOut& menu, MenuLogic& logic);
