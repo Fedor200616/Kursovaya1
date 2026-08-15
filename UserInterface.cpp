@@ -10,11 +10,6 @@
 #include "Analyse.h"
 #include "Menu.h"
 
-
-// ============================================================
-// ИЗМЕНЕНИЕ ЧИСЛОВЫХ ПАРАМЕТРОВ
-// ============================================================
-
 int GetUserInfo(
     int DIFF,
     const std::string& text,
@@ -92,67 +87,6 @@ int GetUserInfo(
     }
 }
 
-
-// ============================================================
-// СТАРАЯ ФУНКЦИЯ
-// ============================================================
-
-int GetUserOpinion(int arg_num)
-{
-    int real_arg_num = arg_num + 1;
-
-    std::cout
-        << "Чтобы вывести информацию в файл нажмите "
-        << arg_num + 1 << '\n'
-
-        << "\nНажмите Enter чтобы выбрать другой файл\n"
-
-        << "Нажмите Esc, чтоб выйти из программы\n";
-
-
-    while (true)
-    {
-        int pressed = _getch();
-
-        switch (pressed)
-        {
-        case '1':
-            return 1;
-
-
-        case '2':
-            if (real_arg_num >= 2 && real_arg_num <= 3)
-                return 2;
-
-            break;
-
-
-        case '3':
-            if (real_arg_num == 3)
-                return 3;
-
-            break;
-
-
-        case 13:
-            return 13;
-
-
-        case 27:
-            return 27;
-
-
-        default:
-            break;
-        }
-    }
-}
-
-
-// ============================================================
-// ДИАЛОГ СОХРАНЕНИЯ
-// ============================================================
-
 fs::path SaveFileDialog(const fs::path& filepath)
 {
     wchar_t filename[MAX_PATH] = {};
@@ -208,11 +142,6 @@ fs::path SaveFileDialog(const fs::path& filepath)
 
     return {};
 }
-
-
-// ============================================================
-// МЕСТО СОХРАНЕНИЯ
-// ============================================================
 
 fs::path place_to_save(const fs::path& filepath)
 {
@@ -294,10 +223,6 @@ fs::path place_to_save(const fs::path& filepath)
 }
 
 
-// ============================================================
-// МЕНЮ РЕЗУЛЬТАТОВ
-// ============================================================
-
 void ReturnResult(
     const std::vector<string_info>& fileLines,
     const std::vector<err_info>& errorInfo,
@@ -312,16 +237,7 @@ void ReturnResult(
         );
 
 
-    // --------------------------------------------------------
-    // Какие пункты показываем
-    // --------------------------------------------------------
-
     unsigned char menu_mask = 0x38;
-
-
-    // --------------------------------------------------------
-    // Информация о результате
-    // --------------------------------------------------------
 
     std::string before_menu =
         "Файл: " +
@@ -370,11 +286,6 @@ void ReturnResult(
         menu_mask |= 0x40;
     }
 
-
-    // --------------------------------------------------------
-    // Создаём меню
-    // --------------------------------------------------------
-
     MenuOut ReturnMenu;
 
     ReturnMenu.PreMenuMessage =
@@ -402,18 +313,10 @@ void ReturnResult(
 
     ReturnMenuLogic ReturnLogic;
 
-
-    // --------------------------------------------------------
-    // Цикл меню
-    // --------------------------------------------------------
-
     while (true)
     {
         int result =
-            menu_navigation(
-                ReturnMenu,
-                ReturnLogic
-            );
+            menu_navigation(ReturnMenu, ReturnLogic);
 
 
         if (result == -1)
