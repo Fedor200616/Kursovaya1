@@ -12,13 +12,7 @@
 
 namespace fs = std::filesystem;
 
-
-// ============================================================
-// НАСТРОЙКИ
-// ============================================================
-
-struct Settings
-{
+struct Settings{
     fs::path filepath = "";
 
     int ref_percent = 10;
@@ -27,13 +21,9 @@ struct Settings
 
     const int PERCENT_DIFF = 5;
 
-    const int PERCENT_RANGE[2] =
-    {
-        0,
-        100
-    };
+    const int PERCENT_RANGE[2] = {0, 100};
 
-    const std::string percent_dialog =
+    const std::string percent_dialog = 
         "Введите минимальный процент комментариев (от " +
         std::to_string(PERCENT_RANGE[0]) +
         " до " +
@@ -43,11 +33,7 @@ struct Settings
 
     const int INTERVAL_DIFF = 2;
 
-    const int INTERVAL_RANGE[2] =
-    {
-        9,
-        41
-    };
+    const int INTERVAL_RANGE[2] = {9, 41};
 
     const std::string interval_dialog =
         "Введите интервал комментариев (от " +
@@ -65,19 +51,7 @@ inline Settings setting;
 // Путь к exe
 extern fs::path exe_filepath;
 
-
-// ============================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================================
-
-int GetUserInfo(
-    int DIFF,
-    const std::string& text,
-    const int* interval,
-    int user_enter
-);
-
-int GetUserOpinion(int arg_num);
+int GetUserInfo(int DIFF, const std::string& text, const int* interval, int user_enter);
 
 fs::path SaveFileDialog(const fs::path& filepath);
 
