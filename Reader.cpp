@@ -61,6 +61,7 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
 
 
 int AnaliseIterator(std::vector<string_info>& info) {
+    errors.clear();
     for (int i = 1; i < info.size(); i++) {
         analyse(info[i - 1], info[i]);
     }

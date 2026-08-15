@@ -1,52 +1,118 @@
 #include "Menu.h"
 
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
 
-void show_menu(const MenuOut& menu) // Отображает меню
+
+void show_menu(const MenuOut& menu)
 {
     system("cls");
 
-    std::ostringstream out_buffer; 
+    std::ostringstream buffer;
 
-    unsigned char menu_out = menu.MenuOutParam; 
+    // --------------------------------------------------------
+    // Текст перед меню
+    // --------------------------------------------------------
 
-    if (!menu.PreMenuMessage.empty()) // Если есть сообщение перед меню
+    if (!menu.PreMenuMessage.empty())
     {
-        out_buffer << menu.PreMenuMessage << '\n'; // Добавляем его в буфер
+        buffer << menu.PreMenuMessage;
+
+        if (menu.PreMenuMessage.back() != '\n')
+            buffer << '\n';
+
+        buffer << '\n';
     }
 
-    for (size_t i = 0; i < menu.Menu.size(); ++i) // Перебираем пункты меню
-    {
-        unsigned char mask = 0x80 >> i; // Получаем бит текущего пункта
 
-        if (!(menu_out & mask)) // Если пункт скрыт
-        {
+    // --------------------------------------------------------
+    // Пункты меню
+    // --------------------------------------------------------
+
+    for (size_t i = 0; i < menu.Menu.size(); ++i)
+    {
+        unsigned char mask =
+            static_cast<unsigned char>(0x80 >> i);
+
+        // Пункт скрыт
+        if (!(menu.MenuOutParam & mask))
             continue;
-        }
 
-        if (menu.ActIndex & mask) // Если пункт выбран
+
+        // Маркер
+        if (menu.ActIndex & mask)
+            buffer << menu.ActMark;
+        else
+            buffer << menu.InactMark;
+
+
+        // Название
+        buffer << menu.Menu[i];
+
+
+        // Параметр
+        if (i < menu.MenuParam.size())
         {
-            out_buffer << menu.ActMark; 
-        }
-        else 
-        {
-            out_buffer << menu.InactMark;
+            buffer << menu.MenuParam[i]();
         }
 
-        out_buffer << menu.Menu[i]; 
 
-        if (i < menu.MenuParam.size() && (menu.MenuEnterParam & mask)) // Если у пункта есть установленный параметр
-        {
-            out_buffer << menu.MenuParam[i](); // Выводим параметр
-        }
-
-        out_buffer << '\n';
+        buffer << '\n';
     }
 
-    if (!menu.PostMenuMessage.empty()) // Если есть сообщение после меню
+
+    // --------------------------------------------------------
+    // Текст после меню
+    // --------------------------------------------------------
+
+    if (!menu.PostMenuMessage.empty())
     {
-        out_buffer << '\n' << menu.PostMenuMessage;
+        buffer << '\n';
+        buffer << menu.PostMenuMessage;
     }
 
-    std::cout << out_buffer.str(); 
+
+    // --------------------------------------------------------
+    // ОДИН вывод всего буфера
+    // --------------------------------------------------------
+
+    std::cout << buffer.str();
 }
 
+
+int menu_navigation(MenuOut& menu, MenuLogic& logic)
+{
+    while (true)
+    {
+        // Позволяем конкретной логике
+        // обновить состояние меню.
+        logic.BeforeShow(menu);
+
+
+        // Полностью формируем кадр
+        show_menu(menu);
+
+
+        // Ждём клавишу
+        key key_code = int_to_key(_getch());
+
+
+        // Превращаем клавишу в действие
+        MenuAction action = logic.GetAction(key_code);
+
+
+        // ESC
+        if (action == MenuAction::Exit)
+            return -1;
+
+
+        // ENTER
+        if (action == MenuAction::Select)
+            return logic.Select(menu);
+
+
+        // Стрелки
+        logic.ProcessNavigation(menu, action);
+    }
+}

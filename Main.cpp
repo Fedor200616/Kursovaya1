@@ -6,94 +6,304 @@
 #include "User.h"
 #include "Menu.h"
 
+#include <iostream>
+#include <cstdlib>
+#include <clocale>
+
+
 std::filesystem::path exe_filepath;
 
 std::vector<string_info> fileLines;
-std::vector<err_info> errors; 
+std::vector<err_info> errors;
+
 
 int main(int argc, char* argv[])
 {
-	if (argc > 0)
-	{
-		exe_filepath = argv[0];
-	}
+    // --------------------------------------------------------
+    // Путь к exe
+    // --------------------------------------------------------
 
-	SetConsoleCP(1251);       // входная кодировка
-    SetConsoleOutputCP(1251); // выходная кодировка
+    if (argc > 0)
+    {
+        exe_filepath =
+            std::filesystem::absolute(argv[0]);
+    }
+
+
+    // --------------------------------------------------------
+    // Кодировка консоли
+    // --------------------------------------------------------
+
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+
     setlocale(LC_ALL, "");
-	unsigned char user_index = 0;
-	unsigned char complite_mask = 0xE0; // Маска для проверки завершенности всех параметров (11100000)
-	bool exit_program = false;
 
-	MenuOut MainMenu{
-		.Menu = {
-			"Файл для анализа ",
-			"Процент комментариев: ",
-			"Интервал оценивания: ",
-			"Продолжить",
-			"Выход"
-		},
-		.MenuParam = {
-			[]() {return setting.filepath.string();},
-			[]() {return std::to_string(setting.ref_percent) + "%";},
-			[]() {return std::to_string(setting.ref_interval);},
-			[]() {return "";},
-			[]() {return "";}
-		},
-			.PostMenuMessage = "Используйте стрелки для навигации по меню, Enter для выбора, Esc для выхода.",
-			.MenuEnterParam = 0b01100000,
-			.MenuOutParam = 0b10001000,
-	};
-	MainMenuLogic MainLogic;
-	do {
-		MainMenuAction action = menu_navigation(MainMenu, MainLogic); // Запускаем меню
 
-		switch (action) {
-		case MainMenuAction::OpenFile: // Выбор файла
-			setting.filepath = OpenFileDialog();
-			if (setting.filepath.empty()) {
-				MainMenu.MenuEnterParam &= ~0X80; // Сбрасываем бит для выбора файла
-			}
-			else {
-				MainMenu.MenuEnterParam |= 0X80; // Устанавливаем бит для выбора файла
-				fileLines = CopyStringFromFile(setting.filepath); // Считываем файл в вектор
-			}
-			break;
-		case MainMenuAction::SetPercent: // Процент комментариев
-			setting.ref_percent = GetUserInfo(setting.PERCENT_DIFF, setting.percent_dialog, setting.PERCENT_RANGE, setting.ref_percent);
-			MainMenu.MenuEnterParam |= 0X40; // Устанавливаем бит для процента комментариев
-			break;
-		case MainMenuAction::SetInterval: // Интервал комментариев
-			setting.ref_interval = GetUserInfo(setting.INTERVAL_DIFF, setting.interval_dialog, setting.INTERVAL_RANGE, setting.ref_interval);
-			MainMenu.MenuEnterParam |= 0X20; // Устанавливаем бит для интервала комментариев
-			break;
-		case MainMenuAction::Continue: // Продолжить
-			if (complite_mask & MainMenu.MenuEnterParam) {
-				system("cls");
-				auto start = chrono();
-				AnaliseIterator(fileLines); //Reader.cpp
-				auto end = chrono();
-				system("cls");
-				std::cout << "Процесс выполнен за " << chrono_diff(start, end) << " секунды" << '\n';
+    // --------------------------------------------------------
+    // Маска обязательных параметров
+    //
+    // 11100000
+    //
+    // 80 = файл
+    // 40 = процент
+    // 20 = интервал
+    // --------------------------------------------------------
 
-				ReturnResult(fileLines, errors, setting.ref_percent, setting.ref_interval, setting.filepath);
-			}
-			else {
-				system("cls");
-				std::cout << "Пожалуйста, заполните все параметры перед продолжением.\n";
-				(void)_getch();
-			}
-			break;
-		case MainMenuAction::Exit: // Выход
-			exit_program = true;
-			std::exit(0);
-			break;
-		default:
-			break;
-		}
+    const unsigned char complete_mask =
+        0xE0;
 
-	} 
-	while (!exit_program);
 
-	return 0;
+    // --------------------------------------------------------
+    // Главное меню
+    // --------------------------------------------------------
+
+    MenuOut MainMenu;
+
+
+    MainMenu.Menu =
+    {
+        "Файл для анализа ",
+        "Процент комментариев: ",
+        "Интервал оценивания: ",
+        "Продолжить",
+        "Выход"
+    };
+
+
+    MainMenu.MenuParam =
+    {
+        []()
+        {
+            return setting.filepath.string();
+        },
+
+        []()
+        {
+            return
+                std::to_string(
+                    setting.ref_percent
+                ) + "%";
+        },
+
+        []()
+        {
+            return
+                std::to_string(
+                    setting.ref_interval
+                );
+        },
+
+        []()
+        {
+            return "";
+        },
+
+        []()
+        {
+            return "";
+        }
+    };
+
+
+    // Изначально доступны:
+    //
+    // 10001000
+    //
+    // Файл
+    // Выход
+    //
+    MainMenu.MenuOutParam =
+        0x88;
+
+
+    // Установлены по умолчанию:
+    //
+    // процент
+    // интервал
+    //
+    MainMenu.MenuEnterParam =
+        0x60;
+
+
+    MainMenu.PostMenuMessage =
+        "Используйте стрелки для навигации "
+        "по меню, Enter для выбора, Esc для выхода.";
+
+
+    MainMenuLogic MainLogic;
+
+
+    // --------------------------------------------------------
+    // Главный цикл
+    // --------------------------------------------------------
+
+    while (true)
+    {
+        int result =
+            menu_navigation(
+                MainMenu,
+                MainLogic
+            );
+
+
+        // ESC
+        if (result == -1)
+        {
+            return 0;
+        }
+
+
+        MainMenuAction action =
+            static_cast<MainMenuAction>(result);
+
+
+        switch (action)
+        {
+            // ====================================================
+            // ФАЙЛ
+            // ====================================================
+
+        case MainMenuAction::OpenFile:
+        {
+            setting.filepath =
+                OpenFileDialog();
+
+
+            if (setting.filepath.empty())
+            {
+                MainMenu.MenuEnterParam &=
+                    ~0x80;
+            }
+            else
+            {
+                MainMenu.MenuEnterParam |=
+                    0x80;
+
+
+                fileLines =
+                    CopyStringFromFile(
+                        setting.filepath
+                    );
+            }
+
+            break;
+        }
+
+
+        // ====================================================
+        // ПРОЦЕНТ
+        // ====================================================
+
+        case MainMenuAction::SetPercent:
+
+            setting.ref_percent =
+                GetUserInfo(
+                    setting.PERCENT_DIFF,
+                    setting.percent_dialog,
+                    setting.PERCENT_RANGE,
+                    setting.ref_percent
+                );
+
+            MainMenu.MenuEnterParam |=
+                0x40;
+
+            break;
+
+
+            // ====================================================
+            // ИНТЕРВАЛ
+            // ====================================================
+
+        case MainMenuAction::SetInterval:
+
+            setting.ref_interval =
+                GetUserInfo(
+                    setting.INTERVAL_DIFF,
+                    setting.interval_dialog,
+                    setting.INTERVAL_RANGE,
+                    setting.ref_interval
+                );
+
+            MainMenu.MenuEnterParam |=
+                0x20;
+
+            break;
+
+
+            // ====================================================
+            // ПРОДОЛЖИТЬ
+            // ====================================================
+
+        case MainMenuAction::Continue:
+        {
+            // Проверяем, установлены ли
+            // все необходимые параметры.
+            if (
+                (MainMenu.MenuEnterParam &
+                    complete_mask)
+                == complete_mask
+                )
+            {
+                system("cls");
+
+
+                auto start =
+                    chrono();
+
+
+                AnaliseIterator(
+                    fileLines
+                );
+
+
+                auto end =
+                    chrono();
+
+
+                system("cls");
+
+
+                std::cout
+                    << "Процесс выполнен за "
+                    << chrono_diff(
+                        start,
+                        end
+                    )
+                    << " секунды\n";
+
+
+                _getch();
+
+
+                ReturnResult(
+                    fileLines,
+                    errors,
+                    setting.filepath
+                );
+            }
+            else
+            {
+                system("cls");
+
+                std::cout
+                    << "Пожалуйста, заполните "
+                    << "все параметры перед продолжением.\n";
+
+                _getch();
+            }
+
+            break;
+        }
+
+
+        // ====================================================
+        // ВЫХОД
+        // ====================================================
+
+        case MainMenuAction::Exit:
+
+            return 0;
+        }
+    }
 }

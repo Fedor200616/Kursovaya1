@@ -1,6 +1,5 @@
 #include "PrintErr.h"
 #include "User.h"
-#include "Main.h"
 
 int print_error(const std::vector<err_info>& errors) {
 	system("cls");
