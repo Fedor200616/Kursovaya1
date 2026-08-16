@@ -5,7 +5,7 @@
 #include <sstream>
 
 
-void show_menu(const MenuOut& menu)
+void show_menu(MenuOut& menu)
 {
     system("cls");
 
@@ -27,8 +27,12 @@ void show_menu(const MenuOut& menu)
             static_cast<unsigned char>(0x80 >> i);
 
         // Пункт скрыт
-        if (!(menu.MenuOutParam & mask))
+        if (!(menu.MenuOutParam & mask)) {
+            if (menu.ActIndex & mask) {
+                menu.ActIndex >>= 1;
+            }
             continue;
+        }
 
 
         // Маркер

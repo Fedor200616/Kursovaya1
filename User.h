@@ -12,6 +12,13 @@
 
 namespace fs = std::filesystem;
 
+void wait_key();
+
+enum class CommInfoType {
+    Percent,
+    Interval
+};
+
 struct Settings {
     fs::path filepath = "";
 
@@ -91,7 +98,7 @@ public:
 /// <param name="ChangeType">Тип параметра (только Percent или Interval)</param>
 /// <param name="set">Обьект настроек программы</param>
 /// <returns>Измененное значение</returns>
-int ChangeMenuDialog(const std::string ChangeType, const Settings& set);
+int ChangeMenuDialog(CommInfoType ChangeType, Settings& set);
 
 fs::path SaveFileDialog(const fs::path& filepath);
 
@@ -246,3 +253,11 @@ public:
 
 
 void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const fs::path& filepath);
+
+
+/// <summary>
+/// Использовать Функцию после обработки всех клавиш
+/// </summary>
+/// <param name="num"></param>
+/// <param name="type"></param>
+void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_type);

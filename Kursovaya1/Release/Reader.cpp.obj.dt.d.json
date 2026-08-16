@@ -388,7 +388,13 @@
             "c:\\users\\i\\source\\repos\\kursovaya1\\printerr.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\conio.h",
             "c:\\users\\i\\source\\repos\\kursovaya1\\lexerutils.h",
-            "c:\\users\\i\\source\\repos\\kursovaya1\\chrono.h"
+            "c:\\users\\i\\source\\repos\\kursovaya1\\user.h",
+            "c:\\users\\i\\source\\repos\\kursovaya1\\menu.h",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\functional",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\unordered_map",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\xhash",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\list",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\xnode_handle.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

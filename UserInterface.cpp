@@ -1,52 +1,55 @@
-п»ї#include "User.h"
+#include "User.h"
 
 #include <iostream>
 #include <string>
 
 #include "Main.h"
 #include "Reader.h"
-#include "Chrono.h"
 #include "PrintErr.h"
 #include "Analyse.h"
 #include "Menu.h"
 
-int ChangeMenuDialog(const std::string ChangeType, const Settings& set) {
-    enum class chtype {
-        Percent,
-        Interval
-    };
-    chtype type;
+void wait_key()
+{
+    int key = _getch();
+
+    if (key == 224)
+        _getch();
+}
+
+int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
+    std::string type;
     
-    int value;
+    int *value;
 
     MenuOut ChangeMenu;
 
     ChangeMenu.Menu = {
             "",
-            "РџСЂРёРјРµРЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ",
-            "РћС‚РјРµРЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ"
+            "Применить изменения",
+            "Отменить изменения"
         };
-    ChangeMenu.PostMenuMessage = "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РґР»СЏ РЅР°РІРёРіР°С†РёРё РїРѕ РјРµРЅСЋ Рё РёР·РјРµРЅРµРЅРёСЋ РїР°СЂР°РјРµС‚СЂРѕРІ, Enter РґР»СЏ РІС‹Р±РѕСЂР°";
+    ChangeMenu.PostMenuMessage = "Используйте стрелки для навигации по меню и изменению параметров, Enter для выбора";
 
-    if (ChangeType == "Percent") {
-        type = chtype::Percent;
-        value = set.ref_percent;
+    if (ChangeType == CommInfoType::Percent) {
+        type = "Percent";
+        value = &set.ref_percent;
 
         ChangeMenu.PreMenuMessage = set.percent_dialog;
     }
-    else if (ChangeType == "Interval") {
-        type = chtype::Interval;
-        value = set.ref_interval;
+    else if (ChangeType == CommInfoType::Interval) {
+        type = "Interval";
+        value = &set.ref_interval;
 
         ChangeMenu.PreMenuMessage = set.interval_dialog;
     }
     else {
-        std::cerr << "РќРµРІРµСЂРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ С„СѓРЅРєС†РёРё ChangeMenuDialog " + ChangeType;
+        std::cerr << "Неверный параметр функции ChangeMenuDialog " + type;
         return -1;
     }
-    int orig_value = value;
+    int orig_value = *value;
     ChangeMenu.MenuParam = {
-        [&value]() {return std::to_string(value); },
+        [&value]() {return "<" + std::to_string(*value) + ">"; },
         []() {return ""; },
         []() {return ""; },
     };
@@ -60,31 +63,31 @@ int ChangeMenuDialog(const std::string ChangeType, const Settings& set) {
         }
 
         ChangeMenuAction action = static_cast<ChangeMenuAction>(result);
-        bool is_correct = type == chtype::Percent ?
-                (value > set.PERCENT_RANGE[0] and value < set.PERCENT_RANGE[1]) :
-                (value > set.INTERVAL_RANGE[0] and value < set.INTERVAL_RANGE[1]); //РњС‹ СѓР¶Рµ РїСЂРѕРІРµСЂРёР»Рё С‡С‚Рѕ С‚РёРї С‚РѕС‡РЅРѕ РѕРїСЂРµРґРµР»РµРЅ
+        bool is_correct = ChangeType == CommInfoType::Percent ?
+                (*value > set.PERCENT_RANGE[0] and *value < set.PERCENT_RANGE[1]) :
+                (*value > set.INTERVAL_RANGE[0] and *value < set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
 
         switch (action) {
         case ChangeMenuAction::Enter:
             
             if (is_correct) {
-                return value;
+                return *value;
             }
             else
                 return orig_value;
             break;
         
         case ChangeMenuAction::Cancel:
-            value = orig_value;
+            *value = orig_value;
             return orig_value;
             break;
 
         case ChangeMenuAction::ChangeNumLeft:
-            value -= (type == chtype::Percent) ? set.PERCENT_DIFF : set.INTERVAL_DIFF;
+            ChangeNum(set, action, ChangeType);
             break;
 
         case ChangeMenuAction::ChangeNumRight:
-            value += (type == chtype::Percent) ? set.PERCENT_DIFF : set.INTERVAL_DIFF;
+            ChangeNum(set, action, ChangeType);
             break;
 
         case ChangeMenuAction::None:
@@ -96,14 +99,14 @@ int ChangeMenuDialog(const std::string ChangeType, const Settings& set) {
 }
 
 fs::path SaveFileDialog(const fs::path& filepath) {
-    wchar_t filename[MAX_PATH] = {}; //Windows РЅР°С‚РёРІРЅРѕ UTF-16
+    wchar_t filename[MAX_PATH] = {}; //Windows нативно UTF-16
 
     std::wstring default_name =
         filepath.stem().wstring() +
         L"_errors.txt";
 
-    // Р—Р°РїРёСЃС‹РІР°РµРј РїСЂРµРґР»Р°РіР°РµРјРѕРµ РёРјСЏ
-    // РїСЂСЏРјРѕ РІ Р±СѓС„РµСЂ РґРёР°Р»РѕРіР°.
+    // Записываем предлагаемое имя
+    // прямо в буфер диалога.
     wcscpy_s(filename, MAX_PATH, default_name.c_str());
 
     fs::path root = fs::current_path().root_directory();
@@ -116,7 +119,7 @@ fs::path SaveFileDialog(const fs::path& filepath) {
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle =
-        L"РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» РєР°Рє";
+        L"Сохранить файл как";
     ofn.lpstrInitialDir =
         root.c_str();
     ofn.Flags = OFN_DONTADDTORECENT |
@@ -133,21 +136,21 @@ fs::path place_to_save(const fs::path& filepath){
     MenuOut SaveMenu;
 
     SaveMenu.PreMenuMessage =
-        "Р’С‹Р±РµСЂРёС‚Рµ РјРµСЃС‚Рѕ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РѕС‚С‡РµС‚Р°";
+        "Выберите место для сохранения отчета";
 
     SaveMenu.Menu =
     {
-        "РЎРѕС…СЂР°РЅРёС‚СЊ РІ С‚РѕР№ Р¶Рµ РїР°РїРєРµ, С‡С‚Рѕ Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ С„Р°Р№Р»",
-        "РЎРѕС…СЂР°РЅРёС‚СЊ РІ РїР°РїРєРµ СЃ РїСЂРѕРіСЂР°РјРјРѕР№ (exe)",
-        "Р’С‹Р±СЂР°С‚СЊ РїР°РїРєСѓ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ",
-        "Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РјРµРЅСЋ РѕР±СЂР°Р±РѕС‚РєРё С„Р°Р№Р»Р°"
+        "Сохранить в той же папке, что и проверяемый файл",
+        "Сохранить в папке с программой (exe)",
+        "Выбрать папку для сохранения",
+        "Вернуться в меню обработки файла"
     };
 
     SaveMenu.MenuOutParam = 0xF0;
 
     SaveMenu.PostMenuMessage =
-        "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РґР»СЏ РЅР°РІРёРіР°С†РёРё, "
-        "Enter РґР»СЏ РІС‹Р±РѕСЂР°, Esc РґР»СЏ РІРѕР·РІСЂР°С‚Р°.";
+        "Используйте стрелки для навигации, "
+        "Enter для выбора, Esc для возврата.\n";
 
     SaveMenuLogic SaveLogic;
 
@@ -182,25 +185,25 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 
     unsigned char menu_mask = 0x38;
 
-    std::string before_menu = "Р¤Р°Р№Р»: " + filepath.string() + "\n";
+    std::string before_menu = "Файл: " + filepath.string() + "\n";
 
     if (errors.empty()) {
-        before_menu += "РћС€РёР±РѕРє РЅРµ РЅР°Р№РґРµРЅРѕ\n";
+        before_menu += "Ошибок не найдено\n";
     }
     else {
-        before_menu += "РќР°Р№РґРµРЅРѕ РѕС€РёР±РѕРє: " + std::to_string(errors.size()) + "\n";
+        before_menu += "Найдено ошибок: " + std::to_string(errors.size()) + "\n";
         menu_mask |= 0x80;
     }
 
-    before_menu += "РџРѕСЂРѕРіРѕРІС‹Р№ РїСЂРѕС†РµРЅС‚ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ: " + std::to_string(setting.ref_percent) + "\n";
+    before_menu += "Пороговый процент комментариев: " + std::to_string(setting.ref_percent) + "\n";
 
-    before_menu += "РРЅС‚РµСЂРІР°Р» РѕС†РµРЅРёРІР°РЅРёСЏ: " + std::to_string(setting.ref_interval) + "\n\n";
+    before_menu += "Интервал оценивания: " + std::to_string(setting.ref_interval) + "\n\n";
 
     if (intervals.empty()) {
-        before_menu += "РљРѕР»РёС‡РµСЃС‚РІРѕ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ С‚СЂРµР±РѕРІР°РЅРёСЋ\n";
+        before_menu += "Количество комментариев соответствует требованию\n";
     }
     else {
-        before_menu += "Р•СЃС‚СЊ РёРЅС‚РµСЂРІР°Р»С‹, СЃ РјР°Р»С‹Рј РєРѕР»РёС‡РµСЃС‚РІРѕРј РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ\n";
+        before_menu += "Есть интервалы, с малым количеством комментариев\n";
         menu_mask |= 0x40;
     }
 
@@ -209,18 +212,18 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     ReturnMenu.PreMenuMessage = before_menu;
 
     ReturnMenu.Menu = {
-        "РџРѕРєР°Р·Р°С‚СЊ РѕС€РёР±РєРё",
-        "РџРѕРєР°Р·Р°С‚СЊ РёРЅС‚РµСЂРІР°Р»С‹ СЃ РЅРµС…РІР°С‚РєРѕР№ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ",
-        "Р­РєСЃРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„Р°Р№Р»",
-        "Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ",
-        "Р’С‹Р№С‚Рё РёР· РїСЂРѕРіСЂР°РјРјС‹"
+        "Показать ошибки",
+        "Показать интервалы с нехваткой комментариев",
+        "Экспортировать результат в файл",
+        "Вернуться в главное меню",
+        "Выйти из программы"
     };
 
 
     ReturnMenu.MenuOutParam = menu_mask;
 
 
-    ReturnMenu.PostMenuMessage = "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РґР»СЏ РЅР°РІРёРіР°С†РёРё, Enter РґР»СЏ РІС‹Р±РѕСЂР°, Esc РґР»СЏ РІРѕР·РІСЂР°С‚Р°.";
+    ReturnMenu.PostMenuMessage = "Используйте стрелки для навигации, Enter для выбора, Esc для возврата.";
 
     ReturnMenuLogic ReturnLogic;
 
@@ -236,19 +239,16 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
         case ReturnMenuAction::OpenErrors:
             system("cls");
             print_error();
-            _getch();
             break;
 
         case ReturnMenuAction::OpenComms:
             system("cls");
             CommPercentPrint(intervals, setting.ref_interval, fileLines.size());
-            _getch();
             break;
 
         case ReturnMenuAction::SaveResult:
             system("cls");
             ExportError(errorInfo, intervals, filepath);
-            _getch();
             break;
 
         case ReturnMenuAction::ExitToMain:
@@ -260,5 +260,41 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
         default:
             break;
         }
+    }
+}
+
+
+void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_type) {
+    int *num;
+    int diff;
+    int range[2];
+    if (num_type == CommInfoType::Percent) {
+        num = &set.ref_percent;
+        diff = set.PERCENT_DIFF;
+        for (int i = 0; i < 2; i++) {
+            range[i] = set.PERCENT_RANGE[i];
+        }
+    }
+    else{
+        num = &set.ref_interval;
+        diff = set.INTERVAL_DIFF;
+        for (int i = 0; i < 2; i++) {
+            range[i] = set.INTERVAL_RANGE[i];
+        }
+    }
+
+    switch (change_type) {
+    case ChangeMenuAction::ChangeNumLeft:
+        if ((*num - diff) > range[0] and (*num - diff) < range[1]) {
+            *num -= diff;
+        }
+        break;
+    case ChangeMenuAction::ChangeNumRight:
+        if ((*num + diff) > range[0] and (*num + diff) < range[1]) {
+            *num += diff;
+        }
+        break;
+    default:
+        return;
     }
 }
