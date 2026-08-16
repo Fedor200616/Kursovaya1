@@ -12,7 +12,7 @@
 
 namespace fs = std::filesystem;
 
-struct Settings{
+struct Settings {
     fs::path filepath = "";
 
     int ref_percent = 10;
@@ -21,9 +21,9 @@ struct Settings{
 
     const int PERCENT_DIFF = 5;
 
-    const int PERCENT_RANGE[2] = {0, 100};
+    const int PERCENT_RANGE[2] = { 0, 100 };
 
-    const std::string percent_dialog = 
+    const std::string percent_dialog =
         "Введите минимальный процент комментариев (от " +
         std::to_string(PERCENT_RANGE[0]) +
         " до " +
@@ -33,7 +33,7 @@ struct Settings{
 
     const int INTERVAL_DIFF = 2;
 
-    const int INTERVAL_RANGE[2] = {9, 41};
+    const int INTERVAL_RANGE[2] = { 9, 41 };
 
     const std::string interval_dialog =
         "Введите интервал комментариев (от " +
@@ -41,26 +41,6 @@ struct Settings{
         " до " +
         std::to_string(INTERVAL_RANGE[1]) +
         "): ";
-
-    /// <summary>
-    /// Использовать Функцию после обработки всех клавиш
-    /// </summary>
-    /// <param name="num"></param>
-    /// <param name="diff"></param>
-    /// <param name="type"></param>
-    void ChangeNum(int& num,const int diff, ChangeMenuAction type) {
-        switch (type) {
-        case ChangeMenuAction::ChangeNumLeft:
-            num -= diff;
-            break;
-        case ChangeMenuAction::ChangeNumRight:
-            num += diff;
-            break;
-        default:
-            return;
-        }
-    }
-
 };
 
 
@@ -68,6 +48,8 @@ struct Settings{
 inline Settings setting;
 
 enum class ChangeMenuAction {
+    None,
+
     ChangeNumLeft,
     ChangeNumRight,
     Enter,
@@ -86,18 +68,30 @@ public:
         }
     }
 
-    void ChangeLeft(MenuOut& menu) override {
-        
+    int ChangeLeft(MenuOut& menu) override {
+        if (menu.ActIndex & 0x80) {
+            return static_cast<int>(ChangeMenuAction::ChangeNumLeft);
+        }
+        else
+            return static_cast<int>(ChangeMenuAction::None);
     }
 
-    void ChangeRight(MenuOut& menu) override {
-        
+    int ChangeRight(MenuOut& menu) override {
+        if (menu.ActIndex & 0x80) {
+            return static_cast<int>(ChangeMenuAction::ChangeNumRight);
+        }
+        else
+            return static_cast<int>(ChangeMenuAction::None);
     }
-
-
 };
 
-int GetUserInfo(int DIFF, const std::string& text, const int* interval, int user_enter);
+/// <summary>
+/// Функция меню изменения параметров оценивания комментариев
+/// </summary>
+/// <param name="ChangeType">Тип параметра (только Percent или Interval)</param>
+/// <param name="set">Обьект настроек программы</param>
+/// <returns>Измененное значение</returns>
+int ChangeMenuDialog(const std::string ChangeType, const Settings& set);
 
 fs::path SaveFileDialog(const fs::path& filepath);
 
@@ -145,10 +139,26 @@ public:
     void BeforeShow(MenuOut& menu) override {
         // Если файл выбран,
         // разрешаем остальные пункты.
-        if (!setting.filepath.empty())
+        if (!setting.filepath.empty()) //Введен файл
         {
-            menu.MenuOutParam |= 0x78;
+            menu.MenuEnterParam |= 0x80;
         }
+        else
+            menu.MenuEnterParam &= ~0x80;
+
+        if (menu.MenuEnterParam & 0x80) { //Показываем настройки комментариев
+            menu.MenuOutParam |= 0x60;
+        }
+        else
+            menu.MenuOutParam &= ~0x60;
+
+        if ((menu.MenuEnterParam & 0xE0) == 0xE0) { //Введены все три поля
+            menu.MenuOutParam |= 0x10;
+        }
+        else {
+            menu.MenuOutParam &= ~0x10;
+        }
+
     }
 };
 

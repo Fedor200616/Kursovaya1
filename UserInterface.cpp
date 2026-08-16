@@ -10,18 +10,17 @@
 #include "Analyse.h"
 #include "Menu.h"
 
-int ChangeMenuDialog(const std::string ChangeType, Settings& set) {
+int ChangeMenuDialog(const std::string ChangeType, const Settings& set) {
     enum class chtype {
         Percent,
         Interval
     };
     chtype type;
-    int orig_value;
-    int* value;
+    
+    int value;
 
     MenuOut ChangeMenu;
 
-    ChangeMenu.MenuType = ChangeType;
     ChangeMenu.Menu = {
             "",
             "Применить изменения",
@@ -31,88 +30,69 @@ int ChangeMenuDialog(const std::string ChangeType, Settings& set) {
 
     if (ChangeType == "Percent") {
         type = chtype::Percent;
-        orig_value = set.ref_percent;
-        value = &set.ref_percent;
+        value = set.ref_percent;
 
         ChangeMenu.PreMenuMessage = set.percent_dialog;
     }
     else if (ChangeType == "Interval") {
         type = chtype::Interval;
-        orig_value = set.ref_interval;
-        value = &set.ref_interval;
+        value = set.ref_interval;
 
         ChangeMenu.PreMenuMessage = set.interval_dialog;
     }
-       
-}
+    else {
+        std::cerr << "Неверный параметр функции ChangeMenuDialog " + ChangeType;
+        return -1;
+    }
+    int orig_value = value;
+    ChangeMenu.MenuParam = {
+        [&value]() {return std::to_string(value); },
+        []() {return ""; },
+        []() {return ""; },
+    };
 
-int GetUserInfo(int DIFF, const std::string& text, const int* interval, int user_enter) {
-    // Исходное значение.
-    // Нужно для отмены через ESC.
-    int original_value = user_enter;
+    ChangeMenuLogic ChangeLogic;
 
     while (true) {
-        system("cls");
-
-        std::cout
-            << text << "\n\n"
-
-            << " <" << user_enter << "> \n\n"
-
-            << "Используйте стрелки вправо/влево "
-            << "для изменения\n"
-
-            << "Нажмите Enter чтобы продолжить\n"
-
-            << "Нажмите Esc, для отмены изменений "
-            << "и возврата в главное меню\n";
-
-
-        key user_key = int_to_key(_getch());
-
-
-        switch (user_key)
-        {
-        case key::Enter:
-
-            return user_enter;
-
-
-        case key::Esc:
-
-            return original_value;
-
-
-        case key::Utility:
-        {
-            key arrow = int_to_key(_getch());
-
-
-            if (
-                arrow == key::Left &&
-                user_enter - DIFF >= interval[0]
-                )
-            {
-                user_enter -= DIFF;
-            }
-
-
-            if (
-                arrow == key::Right &&
-                user_enter + DIFF <= interval[1]
-                )
-            {
-                user_enter += DIFF;
-            }
-
-            break;
+        int result = menu_navigation(ChangeMenu, ChangeLogic);
+        if (result == -1) { //ESC
+            continue;
         }
 
+        ChangeMenuAction action = static_cast<ChangeMenuAction>(result);
+        bool is_correct = type == chtype::Percent ?
+                (value > set.PERCENT_RANGE[0] and value < set.PERCENT_RANGE[1]) :
+                (value > set.INTERVAL_RANGE[0] and value < set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
 
+        switch (action) {
+        case ChangeMenuAction::Enter:
+            
+            if (is_correct) {
+                return value;
+            }
+            else
+                return orig_value;
+            break;
+        
+        case ChangeMenuAction::Cancel:
+            value = orig_value;
+            return orig_value;
+            break;
+
+        case ChangeMenuAction::ChangeNumLeft:
+            value -= (type == chtype::Percent) ? set.PERCENT_DIFF : set.INTERVAL_DIFF;
+            break;
+
+        case ChangeMenuAction::ChangeNumRight:
+            value += (type == chtype::Percent) ? set.PERCENT_DIFF : set.INTERVAL_DIFF;
+            break;
+
+        case ChangeMenuAction::None:
         default:
             break;
         }
-    }
+    }   
+    return -1;
 }
 
 fs::path SaveFileDialog(const fs::path& filepath) {

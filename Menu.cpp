@@ -87,10 +87,12 @@ int menu_navigation(MenuOut& menu, MenuLogic& logic)
         if (action == MenuAction::Exit)
             return -1;
         // ENTER
-        else if (action == MenuAction::Select)
+        if (action == MenuAction::Select)
             return logic.Select(menu);
         // Стрелки
-        else 
-            logic.ProcessNavigation(menu, action);
+        int result = logic.ProcessNavigation(menu, action);
+        if (result != 0) {
+            return result;
+        }
     }
 }

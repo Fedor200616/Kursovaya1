@@ -56,8 +56,6 @@ enum class MenuAction
 /// </summary>
 struct MenuOut
 {
-    std::string MenuType = "Base";
-
     // 0x80 = первый
     // 0x40 = второй
     // 0x20 = третий
@@ -90,7 +88,7 @@ struct MenuOut
 /// <summary>
 /// Базовая логика меню
 /// </summary>
-class MenuLogic
+class MenuLogic //Все экшены меню 0 пунктом возвращают None!!!
 {
 public:
 
@@ -125,28 +123,29 @@ public:
     }
 
     // Обработка обычной навигации
-    void ProcessNavigation(MenuOut& menu, MenuAction action)
-    {
+    int ProcessNavigation(MenuOut& menu, MenuAction action) {
         switch (action)
         {
         case MenuAction::MoveUp:
             MoveUp(menu);
+            return 0;
             break;
 
         case MenuAction::MoveDown:
             MoveDown(menu);
+            return 0;
             break;
 
         case MenuAction::ChangeLeft:
-            ChangeLeft(menu);
+            return ChangeLeft(menu);
             break;
 
         case MenuAction::ChangeRight:
-            ChangeRight(menu);
+            return ChangeRight(menu);
             break;
 
         default:
-            break;
+            return 0;
         }
     }
 
@@ -191,11 +190,15 @@ protected:
     }
 
 
-    virtual void ChangeLeft(MenuOut&)
-    {}
+    virtual int ChangeLeft(MenuOut&)
+    {
+        return 0;
+    }
 
-    virtual void ChangeRight(MenuOut&)
-    {}
+    virtual int ChangeRight(MenuOut&)
+    {
+        return 0;
+    }
 
 
 private:
