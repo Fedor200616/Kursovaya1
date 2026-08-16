@@ -10,20 +10,48 @@
 #include "Analyse.h"
 #include "Menu.h"
 
-int GetUserInfo(
-    int DIFF,
-    const std::string& text,
-    const int* interval,
-    int user_enter
-)
-{
+int ChangeMenuDialog(const std::string ChangeType, Settings& set) {
+    enum class chtype {
+        Percent,
+        Interval
+    };
+    chtype type;
+    int orig_value;
+    int* value;
+
+    MenuOut ChangeMenu;
+
+    ChangeMenu.MenuType = ChangeType;
+    ChangeMenu.Menu = {
+            "",
+            "Применить изменения",
+            "Отменить изменения"
+        };
+    ChangeMenu.PostMenuMessage = "Используйте стрелки для навигации по меню и изменению параметров, Enter для выбора";
+
+    if (ChangeType == "Percent") {
+        type = chtype::Percent;
+        orig_value = set.ref_percent;
+        value = &set.ref_percent;
+
+        ChangeMenu.PreMenuMessage = set.percent_dialog;
+    }
+    else if (ChangeType == "Interval") {
+        type = chtype::Interval;
+        orig_value = set.ref_interval;
+        value = &set.ref_interval;
+
+        ChangeMenu.PreMenuMessage = set.interval_dialog;
+    }
+       
+}
+
+int GetUserInfo(int DIFF, const std::string& text, const int* interval, int user_enter) {
     // Исходное значение.
     // Нужно для отмены через ESC.
     int original_value = user_enter;
 
-
-    while (true)
-    {
+    while (true) {
         system("cls");
 
         std::cout
@@ -87,69 +115,45 @@ int GetUserInfo(
     }
 }
 
-fs::path SaveFileDialog(const fs::path& filepath)
-{
-    wchar_t filename[MAX_PATH] = {};
+fs::path SaveFileDialog(const fs::path& filepath) {
+    wchar_t filename[MAX_PATH] = {}; //Windows нативно UTF-16
 
     std::wstring default_name =
         filepath.stem().wstring() +
         L"_errors.txt";
 
-
     // Записываем предлагаемое имя
     // прямо в буфер диалога.
-    wcscpy_s(
-        filename,
-        MAX_PATH,
-        default_name.c_str()
-    );
+    wcscpy_s(filename, MAX_PATH, default_name.c_str());
 
-
-    fs::path root =
-        fs::current_path().root_directory();
-
+    fs::path root = fs::current_path().root_directory();
 
     OPENFILENAMEW ofn{};
 
     ofn.lStructSize = sizeof(ofn);
-
     ofn.hwndOwner = nullptr;
-
-    ofn.lpstrFilter =
-        L"Text Files\0*.txt\0"
-        L"All Files\0*.*\0";
-
+    ofn.lpstrFilter =L"Text Files\0*.txt\0 All Files\0*.*\0";
     ofn.lpstrFile = filename;
-
     ofn.nMaxFile = MAX_PATH;
-
     ofn.lpstrTitle =
         L"Сохранить файл как";
-
     ofn.lpstrInitialDir =
         root.c_str();
+    ofn.Flags = OFN_DONTADDTORECENT |
+                OFN_OVERWRITEPROMPT;
 
-    ofn.Flags =
-        OFN_DONTADDTORECENT |
-        OFN_OVERWRITEPROMPT;
-
-
-    if (GetSaveFileNameW(&ofn))
-    {
+    if (GetSaveFileNameW(&ofn)) {
         return fs::path(filename);
     }
-
-
-    return {};
+    else 
+        return {};
 }
 
-fs::path place_to_save(const fs::path& filepath)
-{
+fs::path place_to_save(const fs::path& filepath){
     MenuOut SaveMenu;
 
     SaveMenu.PreMenuMessage =
         "Выберите место для сохранения отчета";
-
 
     SaveMenu.Menu =
     {
@@ -159,141 +163,72 @@ fs::path place_to_save(const fs::path& filepath)
         "Вернуться в меню обработки файла"
     };
 
-
     SaveMenu.MenuOutParam = 0xF0;
-
 
     SaveMenu.PostMenuMessage =
         "Используйте стрелки для навигации, "
         "Enter для выбора, Esc для возврата.";
 
-
     SaveMenuLogic SaveLogic;
 
-
-    int result =
-        menu_navigation(
-            SaveMenu,
-            SaveLogic
-        );
-
+    int result = menu_navigation(SaveMenu, SaveLogic);
 
     if (result == -1)
         return {};
 
+    SaveMenuAction action = static_cast<SaveMenuAction>(result);
 
-    SaveMenuAction action =
-        static_cast<SaveMenuAction>(result);
-
-
-    switch (action)
-    {
+    switch (action) {
     case SaveMenuAction::SaveNearFile:
 
-        return filepath.parent_path() /
-            (
-                filepath.stem().wstring() +
-                L"_errors.txt"
-                );
-
+        return filepath.parent_path() / (filepath.stem().wstring() + L"_errors.txt");
 
     case SaveMenuAction::SaveNearExe:
-
-        return exe_filepath.parent_path() /
-            (
-                filepath.stem().wstring() +
-                L"_errors.txt"
-                );
-
+        return exe_filepath.parent_path() / (filepath.stem().wstring() + L"_errors.txt");
 
     case SaveMenuAction::SaveOpinion:
-
         return SaveFileDialog(filepath);
 
-
     case SaveMenuAction::Exit:
-
         return {};
 
-
     default:
-
         return {};
     }
 }
 
-
-void ReturnResult(
-    const std::vector<string_info>& fileLines,
-    const std::vector<err_info>& errorInfo,
-    const fs::path& filepath
-)
-{
-    std::vector<comm_percent> intervals =
-        CommPercent(
-            fileLines,
-            setting.ref_percent,
-            setting.ref_interval
-        );
-
+void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const fs::path& filepath){
+    std::vector<comm_percent> intervals = CommPercent(fileLines, setting.ref_percent, setting.ref_interval);
 
     unsigned char menu_mask = 0x38;
 
-    std::string before_menu =
-        "Файл: " +
-        filepath.string() +
-        "\n";
+    std::string before_menu = "Файл: " + filepath.string() + "\n";
 
-
-    if (errors.empty())
-    {
-        before_menu +=
-            "Ошибок не найдено\n";
+    if (errors.empty()) {
+        before_menu += "Ошибок не найдено\n";
     }
-    else
-    {
-        before_menu +=
-            "Найдено ошибок: " +
-            std::to_string(errors.size()) +
-            "\n";
-
+    else {
+        before_menu += "Найдено ошибок: " + std::to_string(errors.size()) + "\n";
         menu_mask |= 0x80;
     }
 
+    before_menu += "Пороговый процент комментариев: " + std::to_string(setting.ref_percent) + "\n";
 
-    before_menu +=
-        "Пороговый процент комментариев: " +
-        std::to_string(setting.ref_percent) +
-        "\n";
+    before_menu += "Интервал оценивания: " + std::to_string(setting.ref_interval) + "\n\n";
 
-
-    before_menu +=
-        "Интервал оценивания: " +
-        std::to_string(setting.ref_interval) +
-        "\n\n";
-
-
-    if (intervals.empty())
-    {
-        before_menu +=
-            "Количество комментариев соответствует требованию\n";
+    if (intervals.empty()) {
+        before_menu += "Количество комментариев соответствует требованию\n";
     }
-    else
-    {
-        before_menu +=
-            "Есть интервалы, с малым количеством комментариев\n";
-
+    else {
+        before_menu += "Есть интервалы, с малым количеством комментариев\n";
         menu_mask |= 0x40;
     }
 
     MenuOut ReturnMenu;
 
-    ReturnMenu.PreMenuMessage =
-        before_menu;
+    ReturnMenu.PreMenuMessage = before_menu;
 
-
-    ReturnMenu.Menu =
-    {
+    ReturnMenu.Menu = {
         "Показать ошибки",
         "Показать интервалы с нехваткой комментариев",
         "Экспортировать результат в файл",
@@ -302,86 +237,47 @@ void ReturnResult(
     };
 
 
-    ReturnMenu.MenuOutParam =
-        menu_mask;
+    ReturnMenu.MenuOutParam = menu_mask;
 
 
-    ReturnMenu.PostMenuMessage =
-        "Используйте стрелки для навигации, "
-        "Enter для выбора, Esc для возврата.";
-
+    ReturnMenu.PostMenuMessage = "Используйте стрелки для навигации, Enter для выбора, Esc для возврата.";
 
     ReturnMenuLogic ReturnLogic;
 
-    while (true)
-    {
-        int result =
-            menu_navigation(ReturnMenu, ReturnLogic);
-
+    while (true) {
+        int result = menu_navigation(ReturnMenu, ReturnLogic);
 
         if (result == -1)
             return;
 
+        ReturnMenuAction action = static_cast<ReturnMenuAction>(result);
 
-        ReturnMenuAction action =
-            static_cast<ReturnMenuAction>(result);
-
-
-        switch (action)
-        {
+        switch (action){
         case ReturnMenuAction::OpenErrors:
-
             system("cls");
-
             print_error();
-
             _getch();
-
             break;
-
 
         case ReturnMenuAction::OpenComms:
-
             system("cls");
-
-            CommPercentPrint(
-                intervals,
-                setting.ref_interval,
-                fileLines.size()
-            );
-
+            CommPercentPrint(intervals, setting.ref_interval, fileLines.size());
             _getch();
-
             break;
-
 
         case ReturnMenuAction::SaveResult:
-
             system("cls");
-
-            ExportError(
-                errorInfo,
-                intervals,
-                filepath
-            );
-
+            ExportError(errorInfo, intervals, filepath);
             _getch();
-
             break;
 
-
         case ReturnMenuAction::ExitToMain:
-
             return;
 
-
         case ReturnMenuAction::ExitToDesktop:
-
             std::exit(0);
 
-
         default:
-
             break;
         }
     }

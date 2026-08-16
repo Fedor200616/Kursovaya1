@@ -1,10 +1,124 @@
 ﻿  Main.cpp
   Menu.cpp
+C:\Users\I\source\repos\Kursovaya1\User.h(51,45): error C2061: синтаксическая ошибка: идентификатор "ChangeMenuAction"
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2065: type: необъявленный идентификатор
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2050: значение выражения для варианта выбора не является целым
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2065: ChangeNumLeft: необъявленный идентификатор
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "Main.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(53,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2065: ChangeNumRight: необъявленный идентификатор
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "Main.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(56,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "Main.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(61,9): warning C4065: оператор switch содержит метку "default", но не содержит ни одной метки "case"
+  (компиляция исходного файла "Main.cpp")
+  
   PrintErr.cpp
+C:\Users\I\source\repos\Kursovaya1\User.h(51,45): error C2061: синтаксическая ошибка: идентификатор "ChangeMenuAction"
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2065: type: необъявленный идентификатор
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2050: значение выражения для варианта выбора не является целым
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2065: ChangeNumLeft: необъявленный идентификатор
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "PrintErr.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(53,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2065: ChangeNumRight: необъявленный идентификатор
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "PrintErr.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(56,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "PrintErr.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(61,9): warning C4065: оператор switch содержит метку "default", но не содержит ни одной метки "case"
+  (компиляция исходного файла "PrintErr.cpp")
+  
   UserInterface.cpp
-  Создание кода
-  397 of 1224 functions (32.4%) were compiled, the rest were copied from previous compilation.
-    57 functions were new in current compilation
-    150 functions had inline decision re-evaluated but remain unchanged
-  Создание кода завершено
-  Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe
+C:\Users\I\source\repos\Kursovaya1\User.h(51,45): error C2061: синтаксическая ошибка: идентификатор "ChangeMenuAction"
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2065: type: необъявленный идентификатор
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(52,17): error C2050: значение выражения для варианта выбора не является целым
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2065: ChangeNumLeft: необъявленный идентификатор
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "UserInterface.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(53,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,14): error C2653: ChangeMenuAction: не является именем класса или пространства имен
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2065: ChangeNumRight: необъявленный идентификатор
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2131: выражение не определяется константой
+  (компиляция исходного файла "UserInterface.cpp")
+      C:\Users\I\source\repos\Kursovaya1\User.h(56,32):
+      обнаружено неконстантное (под)выражение
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(53,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(56,32): error C2051: значение выражения для варианта выбора не является константой
+  (компиляция исходного файла "UserInterface.cpp")
+  
+C:\Users\I\source\repos\Kursovaya1\User.h(61,9): warning C4065: оператор switch содержит метку "default", но не содержит ни одной метки "case"
+  (компиляция исходного файла "UserInterface.cpp")
+  

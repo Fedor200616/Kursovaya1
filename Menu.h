@@ -56,6 +56,8 @@ enum class MenuAction
 /// </summary>
 struct MenuOut
 {
+    std::string MenuType = "Base";
+
     // 0x80 = первый
     // 0x40 = второй
     // 0x20 = третий
@@ -148,7 +150,7 @@ public:
         }
     }
 
-    // Enter.
+    // Действия при выборе и нажатии Enter
     virtual int Select(MenuOut& menu) = 0;
 
     // Вызывается перед каждым отображением.
