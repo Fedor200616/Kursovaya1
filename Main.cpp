@@ -1,6 +1,5 @@
 #include "Main.h"
 #include "Reader.h"
-#include "Chrono.h"
 #include "PrintErr.h"
 #include "Analyse.h"
 #include "User.h"
@@ -47,11 +46,11 @@ int main(int argc, char* argv[])
         "Выход"
     };
     MainMenu.MenuParam = {
-        [](){ return setting.filepath.string();},
-        [](){return std::to_string(setting.ref_percent) + "%";},
-        [](){return std::to_string(setting.ref_interval);},
-        [](){return "";},
-        [](){return "";}
+        [](){return setting.filepath.string();},
+        [](){return std::to_string(setting.ref_percent) + "%"; },
+        [](){return std::to_string(setting.ref_interval); },
+        [](){return ""; },
+        [](){return ""; }
     };
     // Изначально доступны:
     //
@@ -89,34 +88,24 @@ int main(int argc, char* argv[])
             }
             break;
         case MainMenuAction::SetPercent:
-            setting.ref_percent = GetUserInfo(
-                    setting.PERCENT_DIFF,
-                    setting.percent_dialog,
-                    setting.PERCENT_RANGE,
-                    setting.ref_percent
-            );
-
-            MainMenu.MenuEnterParam |= 0x40;
+            setting.ref_percent = ChangeMenuDialog(CommInfoType::Percent, setting);
+            if (setting.ref_percent != -1)
+                MainMenu.MenuEnterParam |= 0x40;
+            else
+                MainMenu.MenuEnterParam &= ~0x40;
             break;
         case MainMenuAction::SetInterval:
-            setting.ref_interval = GetUserInfo(
-                    setting.INTERVAL_DIFF,
-                    setting.interval_dialog,
-                    setting.INTERVAL_RANGE,
-                    setting.ref_interval
-                );
-
-            MainMenu.MenuEnterParam |= 0x20;
+            setting.ref_interval = ChangeMenuDialog(CommInfoType::Interval, setting);
+            if (setting.ref_interval != -1)
+                MainMenu.MenuEnterParam |= 0x20;
+            else
+                MainMenu.MenuEnterParam &= ~0x20;
             break;
         case MainMenuAction::Continue:{
             if ((MainMenu.MenuEnterParam & complete_mask) == complete_mask){
                 system("cls");
-                auto start = chrono();
-
+                std::cout << "Выполняется обработка...";
                 AnaliseIterator(fileLines);
-                auto end = chrono();
-                system("cls");
-                std::cout << "Процесс выполнен за " << chrono_diff(start, end) << " секунды\n";
                 ReturnResult(fileLines, errors, setting.filepath);
             }
             else{

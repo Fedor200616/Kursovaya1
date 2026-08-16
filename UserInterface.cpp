@@ -1,388 +1,300 @@
-п»ї#include "User.h"
+#include "User.h"
 
 #include <iostream>
 #include <string>
 
 #include "Main.h"
 #include "Reader.h"
-#include "Chrono.h"
 #include "PrintErr.h"
 #include "Analyse.h"
 #include "Menu.h"
 
-int GetUserInfo(
-    int DIFF,
-    const std::string& text,
-    const int* interval,
-    int user_enter
-)
+void wait_key()
 {
-    // РСЃС…РѕРґРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ.
-    // РќСѓР¶РЅРѕ РґР»СЏ РѕС‚РјРµРЅС‹ С‡РµСЂРµР· ESC.
-    int original_value = user_enter;
+    int key = _getch();
 
+    if (key == 224)
+        _getch();
+}
 
-    while (true)
-    {
-        system("cls");
+int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
+    std::string type;
+    
+    int *value;
 
-        std::cout
-            << text << "\n\n"
+    MenuOut ChangeMenu;
 
-            << " <" << user_enter << "> \n\n"
+    ChangeMenu.Menu = {
+            "",
+            "Применить изменения",
+            "Отменить изменения"
+        };
+    ChangeMenu.PostMenuMessage = "Используйте стрелки для навигации по меню и изменению параметров, Enter для выбора";
 
-            << "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РІРїСЂР°РІРѕ/РІР»РµРІРѕ "
-            << "РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ\n"
+    if (ChangeType == CommInfoType::Percent) {
+        type = "Percent";
+        value = &set.ref_percent;
 
-            << "РќР°Р¶РјРёС‚Рµ Enter С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ\n"
+        ChangeMenu.PreMenuMessage = set.percent_dialog;
+    }
+    else if (ChangeType == CommInfoType::Interval) {
+        type = "Interval";
+        value = &set.ref_interval;
 
-            << "РќР°Р¶РјРёС‚Рµ Esc, РґР»СЏ РѕС‚РјРµРЅС‹ РёР·РјРµРЅРµРЅРёР№ "
-            << "Рё РІРѕР·РІСЂР°С‚Р° РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ\n";
+        ChangeMenu.PreMenuMessage = set.interval_dialog;
+    }
+    else {
+        std::cerr << "Неверный параметр функции ChangeMenuDialog " + type;
+        return -1;
+    }
+    int orig_value = *value;
+    ChangeMenu.MenuParam = {
+        [&value]() {return "<" + std::to_string(*value) + ">"; },
+        []() {return ""; },
+        []() {return ""; },
+    };
 
+    ChangeMenuLogic ChangeLogic;
 
-        key user_key = int_to_key(_getch());
-
-
-        switch (user_key)
-        {
-        case key::Enter:
-
-            return user_enter;
-
-
-        case key::Esc:
-
-            return original_value;
-
-
-        case key::Utility:
-        {
-            key arrow = int_to_key(_getch());
-
-
-            if (
-                arrow == key::Left &&
-                user_enter - DIFF >= interval[0]
-                )
-            {
-                user_enter -= DIFF;
-            }
-
-
-            if (
-                arrow == key::Right &&
-                user_enter + DIFF <= interval[1]
-                )
-            {
-                user_enter += DIFF;
-            }
-
-            break;
+    while (true) {
+        int result = menu_navigation(ChangeMenu, ChangeLogic);
+        if (result == -1) { //ESC
+            continue;
         }
 
+        ChangeMenuAction action = static_cast<ChangeMenuAction>(result);
+        bool is_correct = ChangeType == CommInfoType::Percent ?
+                (*value > set.PERCENT_RANGE[0] and *value < set.PERCENT_RANGE[1]) :
+                (*value > set.INTERVAL_RANGE[0] and *value < set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
 
+        switch (action) {
+        case ChangeMenuAction::Enter:
+            
+            if (is_correct) {
+                return *value;
+            }
+            else
+                return orig_value;
+            break;
+        
+        case ChangeMenuAction::Cancel:
+            *value = orig_value;
+            return orig_value;
+            break;
+
+        case ChangeMenuAction::ChangeNumLeft:
+            ChangeNum(set, action, ChangeType);
+            break;
+
+        case ChangeMenuAction::ChangeNumRight:
+            ChangeNum(set, action, ChangeType);
+            break;
+
+        case ChangeMenuAction::None:
         default:
             break;
         }
-    }
+    }   
+    return -1;
 }
 
-fs::path SaveFileDialog(const fs::path& filepath)
-{
-    wchar_t filename[MAX_PATH] = {};
+fs::path SaveFileDialog(const fs::path& filepath) {
+    wchar_t filename[MAX_PATH] = {}; //Windows нативно UTF-16
 
     std::wstring default_name =
         filepath.stem().wstring() +
         L"_errors.txt";
 
+    // Записываем предлагаемое имя
+    // прямо в буфер диалога.
+    wcscpy_s(filename, MAX_PATH, default_name.c_str());
 
-    // Р—Р°РїРёСЃС‹РІР°РµРј РїСЂРµРґР»Р°РіР°РµРјРѕРµ РёРјСЏ
-    // РїСЂСЏРјРѕ РІ Р±СѓС„РµСЂ РґРёР°Р»РѕРіР°.
-    wcscpy_s(
-        filename,
-        MAX_PATH,
-        default_name.c_str()
-    );
-
-
-    fs::path root =
-        fs::current_path().root_directory();
-
+    fs::path root = fs::current_path().root_directory();
 
     OPENFILENAMEW ofn{};
 
     ofn.lStructSize = sizeof(ofn);
-
     ofn.hwndOwner = nullptr;
-
-    ofn.lpstrFilter =
-        L"Text Files\0*.txt\0"
-        L"All Files\0*.*\0";
-
+    ofn.lpstrFilter =L"Text Files\0*.txt\0 All Files\0*.*\0";
     ofn.lpstrFile = filename;
-
     ofn.nMaxFile = MAX_PATH;
-
     ofn.lpstrTitle =
-        L"РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» РєР°Рє";
-
+        L"Сохранить файл как";
     ofn.lpstrInitialDir =
         root.c_str();
+    ofn.Flags = OFN_DONTADDTORECENT |
+                OFN_OVERWRITEPROMPT;
 
-    ofn.Flags =
-        OFN_DONTADDTORECENT |
-        OFN_OVERWRITEPROMPT;
-
-
-    if (GetSaveFileNameW(&ofn))
-    {
+    if (GetSaveFileNameW(&ofn)) {
         return fs::path(filename);
     }
-
-
-    return {};
+    else 
+        return {};
 }
 
-fs::path place_to_save(const fs::path& filepath)
-{
+fs::path place_to_save(const fs::path& filepath){
     MenuOut SaveMenu;
 
     SaveMenu.PreMenuMessage =
-        "Р’С‹Р±РµСЂРёС‚Рµ РјРµСЃС‚Рѕ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РѕС‚С‡РµС‚Р°";
-
+        "Выберите место для сохранения отчета";
 
     SaveMenu.Menu =
     {
-        "РЎРѕС…СЂР°РЅРёС‚СЊ РІ С‚РѕР№ Р¶Рµ РїР°РїРєРµ, С‡С‚Рѕ Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ С„Р°Р№Р»",
-        "РЎРѕС…СЂР°РЅРёС‚СЊ РІ РїР°РїРєРµ СЃ РїСЂРѕРіСЂР°РјРјРѕР№ (exe)",
-        "Р’С‹Р±СЂР°С‚СЊ РїР°РїРєСѓ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ",
-        "Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РјРµРЅСЋ РѕР±СЂР°Р±РѕС‚РєРё С„Р°Р№Р»Р°"
+        "Сохранить в той же папке, что и проверяемый файл",
+        "Сохранить в папке с программой (exe)",
+        "Выбрать папку для сохранения",
+        "Вернуться в меню обработки файла"
     };
-
 
     SaveMenu.MenuOutParam = 0xF0;
 
-
     SaveMenu.PostMenuMessage =
-        "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РґР»СЏ РЅР°РІРёРіР°С†РёРё, "
-        "Enter РґР»СЏ РІС‹Р±РѕСЂР°, Esc РґР»СЏ РІРѕР·РІСЂР°С‚Р°.";
-
+        "Используйте стрелки для навигации, "
+        "Enter для выбора, Esc для возврата.\n";
 
     SaveMenuLogic SaveLogic;
 
-
-    int result =
-        menu_navigation(
-            SaveMenu,
-            SaveLogic
-        );
-
+    int result = menu_navigation(SaveMenu, SaveLogic);
 
     if (result == -1)
         return {};
 
+    SaveMenuAction action = static_cast<SaveMenuAction>(result);
 
-    SaveMenuAction action =
-        static_cast<SaveMenuAction>(result);
-
-
-    switch (action)
-    {
+    switch (action) {
     case SaveMenuAction::SaveNearFile:
 
-        return filepath.parent_path() /
-            (
-                filepath.stem().wstring() +
-                L"_errors.txt"
-                );
-
+        return filepath.parent_path() / (filepath.stem().wstring() + L"_errors.txt");
 
     case SaveMenuAction::SaveNearExe:
-
-        return exe_filepath.parent_path() /
-            (
-                filepath.stem().wstring() +
-                L"_errors.txt"
-                );
-
+        return exe_filepath.parent_path() / (filepath.stem().wstring() + L"_errors.txt");
 
     case SaveMenuAction::SaveOpinion:
-
         return SaveFileDialog(filepath);
 
-
     case SaveMenuAction::Exit:
-
         return {};
 
-
     default:
-
         return {};
     }
 }
 
-
-void ReturnResult(
-    const std::vector<string_info>& fileLines,
-    const std::vector<err_info>& errorInfo,
-    const fs::path& filepath
-)
-{
-    std::vector<comm_percent> intervals =
-        CommPercent(
-            fileLines,
-            setting.ref_percent,
-            setting.ref_interval
-        );
-
+void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const fs::path& filepath){
+    std::vector<comm_percent> intervals = CommPercent(fileLines, setting.ref_percent, setting.ref_interval);
 
     unsigned char menu_mask = 0x38;
 
-    std::string before_menu =
-        "Р¤Р°Р№Р»: " +
-        filepath.string() +
-        "\n";
+    std::string before_menu = "Файл: " + filepath.string() + "\n";
 
-
-    if (errors.empty())
-    {
-        before_menu +=
-            "РћС€РёР±РѕРє РЅРµ РЅР°Р№РґРµРЅРѕ\n";
+    if (errors.empty()) {
+        before_menu += "Ошибок не найдено\n";
     }
-    else
-    {
-        before_menu +=
-            "РќР°Р№РґРµРЅРѕ РѕС€РёР±РѕРє: " +
-            std::to_string(errors.size()) +
-            "\n";
-
+    else {
+        before_menu += "Найдено ошибок: " + std::to_string(errors.size()) + "\n";
         menu_mask |= 0x80;
     }
 
+    before_menu += "Пороговый процент комментариев: " + std::to_string(setting.ref_percent) + "\n";
 
-    before_menu +=
-        "РџРѕСЂРѕРіРѕРІС‹Р№ РїСЂРѕС†РµРЅС‚ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ: " +
-        std::to_string(setting.ref_percent) +
-        "\n";
+    before_menu += "Интервал оценивания: " + std::to_string(setting.ref_interval) + "\n\n";
 
-
-    before_menu +=
-        "РРЅС‚РµСЂРІР°Р» РѕС†РµРЅРёРІР°РЅРёСЏ: " +
-        std::to_string(setting.ref_interval) +
-        "\n\n";
-
-
-    if (intervals.empty())
-    {
-        before_menu +=
-            "РљРѕР»РёС‡РµСЃС‚РІРѕ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ С‚СЂРµР±РѕРІР°РЅРёСЋ\n";
+    if (intervals.empty()) {
+        before_menu += "Количество комментариев соответствует требованию\n";
     }
-    else
-    {
-        before_menu +=
-            "Р•СЃС‚СЊ РёРЅС‚РµСЂРІР°Р»С‹, СЃ РјР°Р»С‹Рј РєРѕР»РёС‡РµСЃС‚РІРѕРј РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ\n";
-
+    else {
+        before_menu += "Есть интервалы, с малым количеством комментариев\n";
         menu_mask |= 0x40;
     }
 
     MenuOut ReturnMenu;
 
-    ReturnMenu.PreMenuMessage =
-        before_menu;
+    ReturnMenu.PreMenuMessage = before_menu;
 
-
-    ReturnMenu.Menu =
-    {
-        "РџРѕРєР°Р·Р°С‚СЊ РѕС€РёР±РєРё",
-        "РџРѕРєР°Р·Р°С‚СЊ РёРЅС‚РµСЂРІР°Р»С‹ СЃ РЅРµС…РІР°С‚РєРѕР№ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ",
-        "Р­РєСЃРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„Р°Р№Р»",
-        "Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ",
-        "Р’С‹Р№С‚Рё РёР· РїСЂРѕРіСЂР°РјРјС‹"
+    ReturnMenu.Menu = {
+        "Показать ошибки",
+        "Показать интервалы с нехваткой комментариев",
+        "Экспортировать результат в файл",
+        "Вернуться в главное меню",
+        "Выйти из программы"
     };
 
 
-    ReturnMenu.MenuOutParam =
-        menu_mask;
+    ReturnMenu.MenuOutParam = menu_mask;
 
 
-    ReturnMenu.PostMenuMessage =
-        "РСЃРїРѕР»СЊР·СѓР№С‚Рµ СЃС‚СЂРµР»РєРё РґР»СЏ РЅР°РІРёРіР°С†РёРё, "
-        "Enter РґР»СЏ РІС‹Р±РѕСЂР°, Esc РґР»СЏ РІРѕР·РІСЂР°С‚Р°.";
-
+    ReturnMenu.PostMenuMessage = "Используйте стрелки для навигации, Enter для выбора, Esc для возврата.";
 
     ReturnMenuLogic ReturnLogic;
 
-    while (true)
-    {
-        int result =
-            menu_navigation(ReturnMenu, ReturnLogic);
-
+    while (true) {
+        int result = menu_navigation(ReturnMenu, ReturnLogic);
 
         if (result == -1)
             return;
 
+        ReturnMenuAction action = static_cast<ReturnMenuAction>(result);
 
-        ReturnMenuAction action =
-            static_cast<ReturnMenuAction>(result);
-
-
-        switch (action)
-        {
+        switch (action){
         case ReturnMenuAction::OpenErrors:
-
             system("cls");
-
             print_error();
-
-            _getch();
-
             break;
-
 
         case ReturnMenuAction::OpenComms:
-
             system("cls");
-
-            CommPercentPrint(
-                intervals,
-                setting.ref_interval,
-                fileLines.size()
-            );
-
-            _getch();
-
+            CommPercentPrint(intervals, setting.ref_interval, fileLines.size());
             break;
-
 
         case ReturnMenuAction::SaveResult:
-
             system("cls");
-
-            ExportError(
-                errorInfo,
-                intervals,
-                filepath
-            );
-
-            _getch();
-
+            ExportError(errorInfo, intervals, filepath);
             break;
-
 
         case ReturnMenuAction::ExitToMain:
-
             return;
 
-
         case ReturnMenuAction::ExitToDesktop:
-
             std::exit(0);
 
-
         default:
-
             break;
         }
+    }
+}
+
+
+void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_type) {
+    int *num;
+    int diff;
+    int range[2];
+    if (num_type == CommInfoType::Percent) {
+        num = &set.ref_percent;
+        diff = set.PERCENT_DIFF;
+        for (int i = 0; i < 2; i++) {
+            range[i] = set.PERCENT_RANGE[i];
+        }
+    }
+    else{
+        num = &set.ref_interval;
+        diff = set.INTERVAL_DIFF;
+        for (int i = 0; i < 2; i++) {
+            range[i] = set.INTERVAL_RANGE[i];
+        }
+    }
+
+    switch (change_type) {
+    case ChangeMenuAction::ChangeNumLeft:
+        if ((*num - diff) > range[0] and (*num - diff) < range[1]) {
+            *num -= diff;
+        }
+        break;
+    case ChangeMenuAction::ChangeNumRight:
+        if ((*num + diff) > range[0] and (*num + diff) < range[1]) {
+            *num += diff;
+        }
+        break;
+    default:
+        return;
     }
 }

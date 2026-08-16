@@ -1,8 +1,8 @@
 #include "Main.h"
 #include "Reader.h"
 #include "Analyse.h"
-#include "Chrono.h"
 #include "LexerUtils.h"
+#include "User.h"
 
 fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через проводник
     wchar_t filename[MAX_PATH];
@@ -14,7 +14,9 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
 
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrFilter = L"C++\0*.cpp;*.c\0Headers\0*.h";
+    ofn.lpstrFilter =
+        L"C++ files\0*.cpp;*.c\0"
+        L"Header files\0*.h\0";
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle = L"Выберите файл";
@@ -31,7 +33,9 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
             return selected;
         }
         else {
-            std::wcout << L"Ошибка: выберите файл с расширением .c, .cpp или .h\n";
+            std::cout << "Ошибка: выберите файл с расширением .c, .cpp или .h\n";
+            std::cout << "Нажмите любую кнопку чтобы продолжить\n";
+            wait_key();
             return fs::path{};
         }
     }

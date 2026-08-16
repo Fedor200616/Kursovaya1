@@ -1,10 +1,7 @@
-﻿  Main.cpp
-  Menu.cpp
-  PrintErr.cpp
-  UserInterface.cpp
+﻿  Menu.cpp
   Создание кода
-  397 of 1224 functions (32.4%) were compiled, the rest were copied from previous compilation.
-    57 functions were new in current compilation
-    150 functions had inline decision re-evaluated but remain unchanged
+  5 of 1273 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    4 functions were new in current compilation
+    28 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe

@@ -16,12 +16,9 @@ int print_error(const std::vector<err_info>& errors) {
 		if (caret_pos < 0) caret_pos = 0; // Защита от вылета
 		std::cout << std::string(caret_pos, ' ') << "^\n";
 	}
-	std::cout << "\nНажмите Enter чтобы продолжить\n";
-	int user_choose = _getch();
-	if (user_choose == '1')
-		return 1;
-	else
-		return 0;
+	std::cout << "Для продолжения нажмите любую кнопку.";
+	wait_key();
+	return 0;
 }
 
 int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
@@ -35,7 +32,7 @@ int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_siz
 
 	}
 	std::cout << "Для продолжения нажмите любую кнопку.";
-	int key = _getch();
+	wait_key();
 	return 0;
 }
 
@@ -58,6 +55,7 @@ int offset(const std::string& s) {
 void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_percent>& comm_vec, const std::filesystem::path& filepath) {
 	system("cls");
 	std::filesystem::path path = place_to_save(filepath);
+	system("cls");
 	if (path.empty()) {
 		return;
 	}
@@ -101,5 +99,5 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 	outFile.close();
 	std::cout << "Отчет успешно сохранен.\n"
 		<< "Нажмите любую кнопку чтобы продолжить\n";
-	_getch();
+	wait_key();
 }
