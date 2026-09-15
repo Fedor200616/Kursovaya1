@@ -37,7 +37,8 @@ struct err_info
         INVALID_PREPROCESSOR_DIRECTIVE,
         UNNECESSARY_POINT,
         INVALID_CHAR_AFTER_INCLUDE,
-        MISSING_ARGUMENT
+        MISSING_ARGUMENT,
+        OPEN_COMM_IN_COMM
 	};
 
     pos position;
@@ -74,7 +75,9 @@ struct err_info
         case err_type::INVALID_CHAR_AFTER_INCLUDE:
             return "После #include ожидалось < или \"";
 		case err_type::MISSING_ARGUMENT:
-			return "Отсутствует аргумент (лишняя запятая)";
+			return "Лишняя запятая (возможно отсутствует аргумент)";
+        case err_type::OPEN_COMM_IN_COMM:
+			return "Открыт комментарий внутри комментария";
         default:
             return "Error code: <" + std::to_string(static_cast<int>(error)) + "> ";
         }
@@ -97,6 +100,15 @@ struct comm_percent {
 /// <param name="errors">Массив ошибок типа err_info</param>
 /// <returns>0</returns>
 int print_error(const std::vector<err_info>& errors = ::errors);
+
+/// <summary>
+/// Формирует строку с информацией об интервалах комментариев
+/// </summary>
+/// <param name="intervals">массив интервалов для вывода</param>
+/// <param name="interval_size">размер интервала</param>
+/// <param name="fileinfosize">длина файла</param>
+/// <returns></returns>
+std::string CommPercentPrintString(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize);
 
 /// <summary>
 /// Выводит на экран интервалы с малым количеством комментариев

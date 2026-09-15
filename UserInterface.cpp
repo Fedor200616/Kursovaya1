@@ -65,8 +65,8 @@ int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
 
         ChangeMenuAction action = static_cast<ChangeMenuAction>(result);
         bool is_correct = ChangeType == CommInfoType::Percent ?
-                (*value > set.PERCENT_RANGE[0] and *value < set.PERCENT_RANGE[1]) :
-                (*value > set.INTERVAL_RANGE[0] and *value < set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
+                (*value >= set.PERCENT_RANGE[0] and *value <= set.PERCENT_RANGE[1]) :
+                (*value >= set.INTERVAL_RANGE[0] and *value <= set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
 
         switch (action) {
         case ChangeMenuAction::Enter:
@@ -247,7 +247,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
 
         case ReturnMenuAction::OpenComms:
             system("cls");
-            CommPercentPrint(intervals, setting.ref_interval, fileLines.size());
+            CommPercentPrint(intervals, setting.ref_interval, fileLines.size() - 1); //-1 потому что нулевая строка не используется
             break;
 
         case ReturnMenuAction::SaveResult:

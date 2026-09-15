@@ -21,16 +21,20 @@ int print_error(const std::vector<err_info>& errors) {
 	return 0;
 }
 
-int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
-	system("cls");
+std::string CommPercentPrintString(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
+	std::ostringstream oss;
 	for (size_t i = 0; i < comm_vec.size(); i++) {
 		int start = comm_vec[i].interval * interval_size + 1;
 		int end = min(start + interval_size - 1, fileinfosize);
-
-		std::cout << "Интервал: " << comm_vec[i].interval << ". Строки с " << start << ", по " << end
+		oss << "Интервал: " << comm_vec[i].interval << ". Строки с " << start << ", по " << end
 			<< " Процент комментариев: " << comm_vec[i].percent << "%" << '\n';
-
 	}
+	return oss.str();
+}
+
+int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
+	system("cls");
+	std::cout << CommPercentPrintString(comm_vec, interval_size, fileinfosize);
 	std::cout << "Для продолжения нажмите любую кнопку.";
 	wait_key();
 	return 0;
@@ -76,14 +80,8 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 	outFile << "Интервалов с малым количеством комментариев: " << comm_vec.size() << "\n\n";
 	int interval_size = setting.ref_interval;
 	int fileinfosize = fileLines.size() - 1; // -1 потому что нулевая строка не используется
-	for (size_t i = 0; i < comm_vec.size(); i++) {
-		int start = comm_vec[i].interval * interval_size + 1;
-		int end = min(start + interval_size - 1, fileinfosize);
-
-		outFile << "Интервал: " << comm_vec[i].interval << ". Строки с " << start << ", по " << end
-			<< " Процент комментариев: " << comm_vec[i].percent << "%" << '\n';
-
-	}
+	
+	outFile << CommPercentPrintString(comm_vec, interval_size, fileinfosize);
 
 	outFile << "\nОшибок в файле: " << errorInfo.size() << "\n\n";
 

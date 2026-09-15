@@ -5,23 +5,23 @@
 #include "User.h"
 
 fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через проводник
-    wchar_t filename[MAX_PATH];
-    fs::path root = fs::current_path().root_directory();
+	wchar_t filename[MAX_PATH]; // Windows нативно использует UTF-16 
+    fs::path root = fs::current_path().root_directory(); 
 
     OPENFILENAME ofn;
-    ZeroMemory(&filename, sizeof(filename));
-    ZeroMemory(&ofn, sizeof(ofn));
+	ZeroMemory(&filename, sizeof(filename)); // Инициализация буфера для имени файла
+    ZeroMemory(&ofn, sizeof(ofn)); 
 
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = NULL;
+    ofn.lStructSize = sizeof(ofn); 
+    ofn.hwndOwner = NULL; 
     ofn.lpstrFilter =
         L"C++ files\0*.cpp;*.c\0"
-        L"Header files\0*.h\0";
+        L"Header files\0*.h\0"; // Типы файлов для выбора
     ofn.lpstrFile = filename;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrTitle = L"Выберите файл";
+	ofn.nMaxFile = MAX_PATH; // Максимальная длина имени файла
+    ofn.lpstrTitle = L"Выберите файл"; 
     ofn.lpstrInitialDir = root.c_str();
-    ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST; // флаги не добавлять в недавние и существует ли файл
 
     if (GetOpenFileNameW(&ofn)) {
         fs::path selected(filename);
@@ -29,7 +29,7 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
         // Приводим расширение к нижнему регистру для универсальности
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         if (ext == ".c" || ext == ".cpp" || ext == ".h") {
-            std::wcout << L"You chose the file \"" << filename << L"\"\n";
+            std::wcout << L"Вы выбрали файл \"" << filename << L"\"\n";
             while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
             return selected;
         }
@@ -43,7 +43,7 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
     }
     else {
         system("cls");
-        std::wcout << L"You cancelled.\n";
+        std::wcout << L"Вы отменили выбор файла.\n";
         wait_key();
         return fs::path{}; // Пустой путь
     }

@@ -46,7 +46,6 @@ void analyse(const string_info& prev_str, string_info& str_info) {
         default:
             break;
         }
-
         
         context.real_prev_update();
     } // Выход из цикла
@@ -54,7 +53,7 @@ void analyse(const string_info& prev_str, string_info& str_info) {
     FindErrorInQuote(context);
 
 
-    if (str_info.line == fileLines.back().line) // Проверка что мы в конце файла
+    if (str_info.line == fileLines.back().line) // Проверка в конце файла
         if(state == State::InLongComment) // Длинный коммент не закрыт
             errors.emplace_back(pos(str_info.line), ' ', err_info::err_type::UNCLOSED_LONG_COMMENT);
     
@@ -191,6 +190,9 @@ void handleInLongComment(AnalysisContext& ctx) {
         ctx.i++;
         ctx.str_info.have_unclosed_long_comment = 0;
     }
+	if (CommentChecker(ctx.ch, ctx.next)) {
+		ctx.addError(err_info::err_type::OPEN_COMM_IN_COMM, ctx.ch);
+	}
 }
 
 void handleIsNumber(AnalysisContext& ctx) {
