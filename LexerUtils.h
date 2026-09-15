@@ -24,6 +24,13 @@ inline int CommentChecker(unsigned char first, unsigned char second) {
     return 0;
 }
 
+struct LastLongComment {
+    int line;
+    int pos;
+};
+
+inline LastLongComment last_long_comment_open = { -1, -1 };
+
 /// <summary>
 /// Проверка на любой тип скобок.
 /// </summary>

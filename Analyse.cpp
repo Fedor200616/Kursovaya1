@@ -55,17 +55,19 @@ void analyse(const string_info& prev_str, string_info& str_info) {
 
     if (str_info.line == fileLines.back().line) // Проверка в конце файла
         if(state == State::InLongComment) // Длинный коммент не закрыт
-            errors.emplace_back(pos(str_info.line), ' ', err_info::err_type::UNCLOSED_LONG_COMMENT);
+            errors.emplace_back(pos(last_long_comment_open.line, last_long_comment_open.pos), '*', err_info::err_type::UNCLOSED_LONG_COMMENT);
     
 }
 
 void handleNormal(AnalysisContext& ctx) {
     int comment_type = CommentChecker(ctx.ch, ctx.next); // 2 - длинный, 1 - строчный, 0 - нет коммента
     if (comment_type == 2) { //Длинный коммент
+
         ctx.state_change(State::InLongComment);
         ctx.i++;
         ctx.str_info.have_comment = comment_type;
         ctx.str_info.have_unclosed_long_comment = 1;
+        last_long_comment_open = { ctx.str_info.line, ctx.i };
         return;
     }
     else if (comment_type == 1) {//Проверка на обычный коммент
@@ -95,21 +97,6 @@ void handleNormal(AnalysisContext& ctx) {
     if (ctx.ch == ',' && ctx.real_prev == ',') {
         ctx.addError(err_info::err_type::MISSING_ARGUMENT); // Двойная запятая
     }
-    // ПОСИМВОЛЬНО
-    //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
-    //===== В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
-    //===== , ) не норм пустое условие в скобках
-    //===== ; перед }
-    // 
-    // ТОКЕНЫ
-    //В переменной инт не может быть запятой, 
-    //В C++ не бывает if () или while () или for (). Внутри должно что-то быть. INVALID_CONSTRUCT 
-    // В C++ операторы выше должны иметь скобки 
-    // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
-    // 
-    // ПРЕДПРОЦЕССОР
-    //===== Проверим все инклюд файлы на их наличие в директории???
-    //
 
     if (IsInvalidChar(ctx.ch)) {
         errors.emplace_back(pos(ctx.str_info.line, ctx.i), ctx.ch, err_info::err_type::INVALID_CHARACTER);
@@ -132,7 +119,7 @@ void handleNormal(AnalysisContext& ctx) {
     }
 
     bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_';
-
+    
     if (is_start_of_number) {
         if (isdigit(ctx.ch)) {
             ctx.state_change(State::IsNumber);
