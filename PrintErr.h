@@ -75,7 +75,7 @@ struct err_info
         case err_type::INVALID_CHAR_AFTER_INCLUDE:
             return "После #include ожидалось < или \"";
 		case err_type::MISSING_ARGUMENT:
-			return "Лишняя запятая (возможно отсутствует аргумент)";
+			return "Лишняя (двойная) запятая";
         case err_type::OPEN_COMM_IN_COMM:
 			return "Открыт комментарий внутри комментария";
         default:

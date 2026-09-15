@@ -454,7 +454,6 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
     return err_info( pos(str_info.line, str_info.brackets.back().position), 
         str_info.brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
 }
-
 void FindEndBrackets(const std::vector<string_info>& info) {
     if (info.back().brackets.empty())
         return;
