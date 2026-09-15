@@ -173,7 +173,7 @@ void handleQuote(AnalysisContext& ctx) {
 void handleInLongComment(AnalysisContext& ctx) {
     ctx.str_info.have_comment = 2;
     if (ctx.ch == long_comment_end[0] && ctx.next == long_comment_end[1]) {
-        ctx.state_change(State::Normal);/*
+        ctx.state_change(State::Normal);
         ctx.i++;
         ctx.str_info.have_unclosed_long_comment = 0;
     }
