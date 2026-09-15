@@ -30,9 +30,11 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         if (ext == ".c" || ext == ".cpp" || ext == ".h") {
             std::wcout << L"You chose the file \"" << filename << L"\"\n";
+            while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
             return selected;
         }
         else {
+            system("cls");
             std::cout << "Ошибка: выберите файл с расширением .c, .cpp или .h\n";
             std::cout << "Нажмите любую кнопку чтобы продолжить\n";
             wait_key();
@@ -40,7 +42,9 @@ fs::path OpenFileDialog() {  // Вызов диалогового окна выбора файла через провод
         }
     }
     else {
+        system("cls");
         std::wcout << L"You cancelled.\n";
+        wait_key();
         return fs::path{}; // Пустой путь
     }
 }

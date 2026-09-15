@@ -121,7 +121,12 @@ std::string delete_tab(const std::string& s);
 /// <returns>„исло на которое сдвинута строка табул€цией</returns>
 int offset(const std::string& s);
 
-
+/// <summary>
+/// ‘ормирование текстового файла отчета, содержащего статистику и детальный список ошибок.
+/// </summary>
+/// <param name="errorInfo">вектор структуры зафиксированных ошибок</param>
+/// <param name="comm_vec">вектор структуры информации об интервалах комментариев </param>
+/// <param name="filepath">ѕуть к исзодному файлу</param>
 void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_percent>& comm_vec, const std::filesystem::path& filepath);
 
 #endif

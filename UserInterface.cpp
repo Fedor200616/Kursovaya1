@@ -11,6 +11,7 @@
 
 void wait_key()
 {
+    while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
     int key = _getch();
 
     if (key == 224)
@@ -126,10 +127,13 @@ fs::path SaveFileDialog(const fs::path& filepath) {
                 OFN_OVERWRITEPROMPT;
 
     if (GetSaveFileNameW(&ofn)) {
+        while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
         return fs::path(filename);
     }
-    else 
+    else {
+        while (_kbhit()) _getch();
         return {};
+    }
 }
 
 fs::path place_to_save(const fs::path& filepath){

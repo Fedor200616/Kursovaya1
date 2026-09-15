@@ -61,17 +61,13 @@ int main(int argc, char* argv[])
     //
     MainMenu.MenuOutParam = 0x88;
     MainMenu.MenuEnterParam = 0x60;
-    MainMenu.PostMenuMessage = "Используйте стрелки для навигации по меню, Enter для выбора, Esc для выхода.";
+    MainMenu.PostMenuMessage = "Используйте стрелки для навигации по меню, Enter для выбора.";
 
     MainMenuLogic MainLogic;
     // Главный цикл
     while (true){
         int result = menu_navigation(MainMenu, MainLogic);
-        // ESC
-        if (result == -1){
-            return 0;
-        }
-
+        
         MainMenuAction action = static_cast<MainMenuAction>(result);
 
 
@@ -102,7 +98,7 @@ int main(int argc, char* argv[])
                 MainMenu.MenuEnterParam &= ~0x20;
             break;
         case MainMenuAction::Continue:{
-            if ((MainMenu.MenuEnterParam & complete_mask) == complete_mask){
+            if ((MainMenu.MenuEnterParam & complete_mask) == complete_mask){ //проверка заполненности всех параметров
                 system("cls");
                 std::cout << "Выполняется обработка...";
                 AnaliseIterator(fileLines);

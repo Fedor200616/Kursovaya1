@@ -1,10 +1,4 @@
-﻿  Main.cpp
-  Menu.cpp
-  PrintErr.cpp
-  Reader.cpp
-C:\Users\I\source\repos\Kursovaya1\Reader.cpp(69,23): warning C4018: '<': несоответствие знака и беззнака
-  UserInterface.cpp
-  Создание кода
+﻿  Создание кода
   0 of 1273 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
