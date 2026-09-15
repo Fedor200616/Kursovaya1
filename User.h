@@ -40,7 +40,7 @@ struct Settings {
 
     const int INTERVAL_DIFF = 2;
 
-    const int INTERVAL_RANGE[2] = { 9, 41 };
+    const int INTERVAL_RANGE[2] = { 10, 40 };
 
     const std::string interval_dialog =
         "¬ведите интервал комментариев (от " +

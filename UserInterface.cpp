@@ -289,12 +289,12 @@ void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_typ
 
     switch (change_type) {
     case ChangeMenuAction::ChangeNumLeft:
-        if ((*num - diff) > range[0] and (*num - diff) < range[1]) {
+        if ((*num - diff) >= range[0] and (*num - diff) <= range[1]) {
             *num -= diff;
         }
         break;
     case ChangeMenuAction::ChangeNumRight:
-        if ((*num + diff) > range[0] and (*num + diff) < range[1]) {
+        if ((*num + diff) >= range[0] and (*num + diff) <= range[1]) {
             *num += diff;
         }
         break;
