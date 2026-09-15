@@ -96,21 +96,6 @@ void handleNormal(AnalysisContext& ctx) {
     if (ctx.ch == ',' && ctx.real_prev == ',') {
         ctx.addError(err_info::err_type::MISSING_ARGUMENT); // Двойная запятая
     }
-    // ПОСИМВОЛЬНО
-    //===== @, $, ` (обратный апостроф), а также кириллица (если это не комментарий/строка). INVALID_CHARACTER
-    //===== В C++ нельзя писать a + / b или int a = = 5; (через пробел). INVALID_CONSTRUCT
-    //===== , ) не норм пустое условие в скобках
-    //===== ; перед }
-    // 
-    // ТОКЕНЫ
-    //В переменной инт не может быть запятой, 
-    //В C++ не бывает if () или while () или for (). Внутри должно что-то быть. INVALID_CONSTRUCT 
-    // В C++ операторы выше должны иметь скобки 
-    // В C++ имя переменной или функции не может начинаться с цифры INVALID_IDENTIFIER
-    // 
-    // ПРЕДПРОЦЕССОР
-    //===== Проверим все инклюд файлы на их наличие в директории???
-    //
 
     if (IsInvalidChar(ctx.ch)) {
         errors.emplace_back(pos(ctx.str_info.line, ctx.i), ctx.ch, err_info::err_type::INVALID_CHARACTER);
