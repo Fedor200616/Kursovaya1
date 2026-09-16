@@ -193,7 +193,7 @@ void PreprocChecker(AnalysisContext& ctx);
 void FindErrorInQuote(AnalysisContext& ctx);
 
 /// <summary>
-/// Проверка скобок
+/// Проверка скобок внутри контекста
 /// </summary>
 /// <param name="str_info">Информация о строке</param>
 /// <param name="bracket">Информация о скобке</param>

@@ -321,7 +321,6 @@ void handlePreprocessor(AnalysisContext& ctx) {
     case PreprocState::InArg:
         if (if_comm() == 1) return;
         if (ctx.ch == '\"' && ctx.preproc.type == PreprocStandard::Include) {
-            //проверка подключенного файла
             ctx.preproc.state = PreprocState::AfterArg;
         }
         else if (ctx.ch == '>' && ctx.preproc.type == PreprocStandard::Include) {
@@ -333,9 +332,9 @@ void handlePreprocessor(AnalysisContext& ctx) {
     break;
 
     case PreprocState::AfterArg:
-        if (if_comm() == 1) return;
+        if (if_comm() == 1) return; // однострочный коментарий нельзя 
         if (isgraph(ctx.ch)) {
-            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION); // После аргумента не должно быть видимых символов Пример #include <file> garbage
+            ctx.addError(err_info::err_type::INVALID_CONSTRUCTION); // После аргумента не должно быть видимых символов Пример #include <file> int
             ctx.preproc.state = PreprocState::ErrorConstr;
         }
         break;
@@ -373,18 +372,18 @@ void FindErrorInQuote(AnalysisContext& ctx) {
 
 void BracketChecker(string_info& str_info, const brack bracket) {
     int line = str_info.line;
-    std::vector<brack>& result = str_info.brackets;
+    std::vector<brack>& result = str_info.brackets; // информация о (как правило открытых) скобках в предыдущих строках
     if (IsOpenBracket(bracket.bracket)) {
-        result.push_back(bracket);
+        result.push_back(bracket); //При открывающей скобке мы просто добавляем ее в стэк скобок
     }
     else if (IsCloseBracket(bracket.bracket)) {
-        if (result.empty()) {
+        if (result.empty()) { // нет открывающей
             errors.emplace_back( pos(str_info.line, bracket.position), bracket.bracket, err_info::err_type::CLOSE_BRAKET_FIRST );
             return;
         }
         char last_open = result.back().bracket;
-        if (BracketCompare(last_open, bracket.bracket)) {
-            result.pop_back();
+        if (BracketCompare(last_open, bracket.bracket)) { //если последняя открытая скобка того же типа, то все верно
+            result.pop_back(); //Удаляем эту открытую скобку
         }
         else{
             if (!HaveSimOpenBrack(result, bracket.bracket)) { //Проверяем на такую же открывающуюся во всем массиве скобок
@@ -393,7 +392,7 @@ void BracketChecker(string_info& str_info, const brack bracket) {
             }
             else {
                 // есть скобка такого типа, значит порядок нарушен
-                errors.emplace_back(FindErrUnCloseBrack(str_info));
+                errors.emplace_back(FindErrUnCloseBrack(str_info)); //прогоняем стек скобок в поиске нужной открытой скобки
                 result.pop_back(); //удаляем лишнюю открытую скобку
                 result.pop_back(); //удаляем скобку, которая закрывалась
             }
@@ -413,11 +412,11 @@ std::vector<comm_percent> CommPercent(const std::vector<string_info>& Info, cons
     int total_lines = static_cast<int>(Info.size()) - 1; // пропускаем нулевую строку
     int num_intervals = (total_lines + interval - 1) / interval; // округление вверх
 
-    for (int i = 0; i < num_intervals; i++) {
-        int start = i * interval + 1;
-        int end = std::min((start + interval - 1), total_lines);
+    for (int i = 0; i < num_intervals; i++) { //Проходимся по интервалу и ищем проценты комментариев
+        int start = i * interval + 1; // начало не с 0 а с 1
+        int end = std::min((start + interval - 1), total_lines); //по причине выше убираем один символ
         int count = 0;
-        int real_size = end - start + 1;
+        int real_size = end - start + 1; // для корректного подсчета комментов в конце файла
         for (int j = start; j <= end; j++) {
             if (Info[j].have_comment != 0)
                 count++;
@@ -435,15 +434,32 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
         return { pos(- 1), ' ', err_info::err_type::UNDEFINE_ERROR};
     }
 
-    for (int i = str_info.line; i > 0; i--) {
-        if (Lines[i].brackets == str_info.brackets && Lines[i - 1].brackets != str_info.brackets)
-            if (Lines[i].brackets.size() > Lines[i - 1].brackets.size())
-                return err_info(pos(Lines[i].line, Lines[i].brackets.back().position),
-                Lines[i].brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
+    for (int i = str_info.line; i > 0; i--) { // прогон с конца
+        if (str_info.brackets == Lines[i].brackets && str_info.brackets != Lines[i - 1].brackets){ //в строке находятся какие то скобки, которые могут быть незакрыты
+            if (Lines[i].brackets.size() > Lines[i - 1].brackets.size()) {
+                /* Логика алгоритма:
+                1 {({
+                2 {({[(
+                3 {({[([
+                4 {({[(  ]}
+                закрывает^^ лишняя
+                смотрим вверх
+                i = 4, 4 == 4 и 4 != 3 но 4 > 3
+                i = 3, 4 != 3
+                i = 2, 4 == 2 и 4 != 1 и 1 < 2
+                */
+                return err_info(pos(Lines[i].line,
+                    Lines[i].brackets.back().position),
+                    Lines[i].brackets.back().bracket,
+                    err_info::err_type::UNCLOSED_BRACKET);
+            }
+        }   
     }
     return err_info( pos(str_info.line, str_info.brackets.back().position), 
-        str_info.brackets.back().bracket, err_info::err_type::UNCLOSED_BRACKET);
+            str_info.brackets.back().bracket, 
+            err_info::err_type::UNCLOSED_BRACKET); //запасной вариант
 }
+
 void FindEndBrackets(const std::vector<string_info>& info) {
     if (info.back().brackets.empty())
         return;
