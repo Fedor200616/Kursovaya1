@@ -3,27 +3,29 @@
 #include "Main.h"
 #include "PrintErr.h"
 
+// основная функция анализа строки
 void analyse(const string_info& prev_str, string_info& str_info) {
     
-    recent(prev_str, str_info);
+    recent(prev_str, str_info); //узнаем что было в предыдущей строке 
     
-    State state = State::Normal;
+    State state = State::Normal; //по умолчанию нормал
     if (str_info.have_unclosed_long_comment)
         state = State::InLongComment;
     else
         str_info.have_comment = 0;
-
-    unsigned char real_prev = '\0';
-    NumberParam numparam = NumberParam();
+	//real prev - последний символ за исключением пробелов и комментариев, нужен для проверки на двойные операторы и т.п.
+    unsigned char real_prev = '\0'; //задаем первый символ проверки как пустой 
+    //конструкторы пустых информаций
+    NumberParam numparam = NumberParam(); 
     QuoteInfo quote_info = QuoteInfo();
     Preproc preproc = Preproc();
 
-    int i = 0;
+	int i = 0; //заранее задаем i для использования в контексте анализа, чтобы не передавать его в функции
     AnalysisContext context = AnalysisContext(str_info, i, real_prev, state, numparam, quote_info, preproc);
 
     for (; i < static_cast<int>(str_info.str.size()); i++)
     {   
-        context.refresh();
+        context.refresh(); //обновляем контекст
         int comment_type = 0;
         switch (state)
         {
@@ -47,24 +49,27 @@ void analyse(const string_info& prev_str, string_info& str_info) {
             break;
         }
         
-        context.real_prev_update();
+        context.real_prev_update(); 
     } // Выход из цикла
-
-    FindErrorInQuote(context);
-
-
-    if (str_info.line == fileLines.back().line) // Проверка в конце файла
+    //
+    // Строка закончилась, смотрим что мы забыли закрыть или сделать
+    //
+    FindErrorInQuote(context); //если кавички не закрыты
+    //
+    // Конец файла, проверки
+    //
+    if (str_info.line == fileLines.back().line) 
         if(state == State::InLongComment) // Длинный коммент не закрыт
             errors.emplace_back(pos(last_long_comment_open.line, last_long_comment_open.pos), '*', err_info::err_type::UNCLOSED_LONG_COMMENT);
-    
 }
 
+//Основная функция, перекидывает на нужные состояния или проверяет обычный текст
 void handleNormal(AnalysisContext& ctx) {
     int comment_type = CommentChecker(ctx.ch, ctx.next); // 2 - длинный, 1 - строчный, 0 - нет коммента
     if (comment_type == 2) { //Длинный коммент
 
         ctx.state_change(State::InLongComment);
-        ctx.i++;
+        ctx.i++; //Перебрасываем проверку, так как уже знаем следущий символ
         ctx.str_info.have_comment = comment_type;
         ctx.str_info.have_unclosed_long_comment = 1;
         last_long_comment_open = { ctx.str_info.line, ctx.i };
@@ -98,7 +103,7 @@ void handleNormal(AnalysisContext& ctx) {
         ctx.addError(err_info::err_type::MISSING_ARGUMENT); // Двойная запятая
     }
 
-    if (IsInvalidChar(ctx.ch)) {
+    if (IsInvalidChar(ctx.ch)) { 
         errors.emplace_back(pos(ctx.str_info.line, ctx.i), ctx.ch, err_info::err_type::INVALID_CHARACTER);
     }
 
@@ -118,48 +123,46 @@ void handleNormal(AnalysisContext& ctx) {
         return;
     }
 
-    bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_';
+    bool is_start_of_number = isdigit(ctx.ch) && !isalpha(ctx.real_prev) && ctx.real_prev != '_'; // начало числа, и это точно не название
     
     if (is_start_of_number) {
-        if (isdigit(ctx.ch)) {
-            ctx.state_change(State::IsNumber);
-            if (ctx.ch == '0') {
-                switch (ctx.next) {
-                case 'x':
-                case 'X':
-                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Hex);
-                    ctx.i++;
-                    break;
-                case 'b':
-                case 'B':
-                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Bin);
-                    ctx.i++;
-                    break;
-                default:
-                    if (isdigit(ctx.next)) {
-                        ctx.num = NumberParam(ctx.ch, NumberParam::type::Oct);
-                    }
-                    else {
-                        ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec);
-                    }
-                    break;
+        ctx.state_change(State::IsNumber);
+        if (ctx.ch == '0') {
+            switch (ctx.next) {
+            case 'x':
+            case 'X':
+                ctx.num = NumberParam(ctx.ch, NumberParam::type::Hex);
+                ctx.i++;
+                break;
+            case 'b':
+            case 'B':
+                ctx.num = NumberParam(ctx.ch, NumberParam::type::Bin);
+                ctx.i++;
+                break;
+            default:
+                if (isdigit(ctx.next)) {
+                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Oct);
                 }
+                else {
+                    ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec);
+                }
+                break;
             }
-            else 
-                ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec);
         }
+        else 
+            ctx.num = NumberParam(ctx.ch, NumberParam::type::Dec); 
     }
 }
 
 void handleQuote(AnalysisContext& ctx) {
-    if (ctx.ch == '\\') { // escape
+    if (ctx.ch == '\\') { // escape-последовательность
         ctx.i++;
         ctx.quote.quote_counter++;
         return;
     }
-    if (ctx.ch == ctx.quote.quote_char) {
+    if (ctx.ch == ctx.quote.quote_char) { //проверка на закрытие && закрытие тем же символом
         if (ctx.quote.quote_char == '\'') {
-            if (ctx.quote.quote_counter == 0) // нельзя '' пустые
+            if (ctx.quote.quote_counter == 0) // нельзя оставлять '' пустые
                 ctx.addError(err_info::err_type::EMPTY_CHAR_QUOTE);
             if (ctx.quote.quote_counter > 1)
                 errors.emplace_back(pos(ctx.str_info.line, ctx.i - 1), ctx.prev, err_info::err_type::TOO_LONG_CHAR_QUOTE);
@@ -175,38 +178,41 @@ void handleInLongComment(AnalysisContext& ctx) {
     if (ctx.ch == long_comment_end[0] && ctx.next == long_comment_end[1]) {
         ctx.state_change(State::Normal);
         ctx.i++;
-        ctx.str_info.have_unclosed_long_comment = 0;
+		ctx.str_info.have_unclosed_long_comment = 0; // теперь длинный комментарий закрыт
     }
 	if (CommentChecker(ctx.ch, ctx.next)) {
-		ctx.addError(err_info::err_type::OPEN_COMM_IN_COMM, ctx.ch);
+		ctx.addError(err_info::err_type::OPEN_COMM_IN_COMM, ctx.ch); //предупреждаем, что во возможно коммент был не закрыт
 	}
 }
 
 void handleIsNumber(AnalysisContext& ctx) {
     bool is_dot = (ctx.ch == '.');
-    bool is_exp = (tolower(ctx.ch) == 'e' && ctx.num.numtype == NumberParam::type::Dec);
+	bool is_exp = (tolower(ctx.ch) == 'e' && ctx.num.numtype == NumberParam::type::Dec); // Экспонента может быть только в десятичной системе
     bool is_sign_after_exp = (ctx.num.numtype == NumberParam::type::Dec &&
         (tolower(ctx.prev) == 'e') &&
-        (ctx.ch == '+' || ctx.ch == '-'));
+        (ctx.ch == '+' || ctx.ch == '-')); // Знак после экспоненты
+
     bool EndOfNum = !is_dot && !is_exp && !is_sign_after_exp &&
         (isspace(ctx.ch) || IsOperator(ctx.ch) || IsBracket(ctx.ch) ||
-            ctx.ch == ';' || ctx.ch == ',' || ctx.ch == '_');
+            ctx.ch == ';' || ctx.ch == ',' || ctx.ch == '_'); 
 
     if (EndOfNum) {
         ctx.state_change(State::Normal);
-        ctx.iminus();
+		ctx.iminus(); // Чтобы этот символ был обработан еще раз в нормальном состоянии
         return;
     }
+
     bool Suffix = tolower(ctx.ch) == 'u' ||
         tolower(ctx.ch) == 'l' ||
-        tolower(ctx.ch) == 'f';
+		tolower(ctx.ch) == 'f'; // Суффиксы могут быть только в конце числа, поэтому если мы встретили суффикс, то число закончилось
+
     if (Suffix) {
         return;
     }
     
-    switch (ctx.num.numtype) {
+	switch (ctx.num.numtype) { //проверяем, что символы соответствуют типу числа.
     case NumberParam::type::Bin:
-        if (ctx.ch != '0' && ctx.ch != '1') {
+        if (ctx.ch != '0' && ctx.ch != '1') { 
             ctx.addError(err_info::err_type::INVALID_CHARACTER);
         }
         break;
@@ -253,9 +259,18 @@ void handleIsNumber(AnalysisContext& ctx) {
 }
 
 void handlePreprocessor(AnalysisContext& ctx) {
+    auto if_comm = [&ctx]() {
+        if (CommentChecker(ctx.ch, ctx.next)) {
+            ctx.iminus();
+            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
+            return 1;
+        }
+        else return 0;
+    };
+
     switch (ctx.preproc.state)
     {
-    case PreprocState::AfterHesh: 
+	case PreprocState::AfterHesh: // После решетки ожидаем название препроцессора
         if (CommentChecker(ctx.ch, ctx.next)) {
             ctx.iminus();
             ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
@@ -266,30 +281,27 @@ void handlePreprocessor(AnalysisContext& ctx) {
         }
         else {
             if (!isspace(ctx.ch)) {
-                ctx.addError(err_info::err_type::INVALID_CHARACTER); // #1clude например
-                ctx.preproc.state = PreprocState::ErrorConstr;
+                ctx.addError(err_info::err_type::INVALID_CHARACTER); // #include например
+                ctx.preproc.state = PreprocState::ErrorConstr; //если есть ошибка то смысла проверять нет, только накапливать ошибки
             }
         }
-        break;
+    break;
 
     case PreprocState::InName:
-        if (isalpha(ctx.ch)) {
-            ctx.preproc.preproc_name += ctx.ch;
+		if (isalpha(ctx.ch)) { // название директивы
+            ctx.preproc.preproc_name += ctx.ch; //записываем имя предпроцессора в буфер
         }
-        else {
+        else { //закончилось название директивы
             ctx.preproc.setPreproc();
-            if (ctx.preproc.type == PreprocStandard::NONE){
+			if (ctx.preproc.type == PreprocStandard::NONE) { // Если директива не распознана, то выдаем ошибку
                 ctx.addError(err_info::err_type::INVALID_PREPROCESSOR_DIRECTIVE); // неизвестная директива препроцессора
                 ctx.preproc.state = PreprocState::ErrorConstr;
             }
         }
-        break;
+    break;
+
     case PreprocState::AfterName:
-        if (CommentChecker(ctx.ch, ctx.next)) {
-            ctx.iminus();
-            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
-            return;
-        }
+		if (if_comm() == 1) return; // здесь и дальше используем лямбду для проверки на комментарий, чтобы не дублировать код
         if (isspace(ctx.ch)) break; // Пропускаем пробелы после названия (напр. #include   <...)
         if (ctx.preproc.type == PreprocStandard::Include) {
             if (ctx.ch == '<' || ctx.ch == '\"') {
@@ -300,19 +312,14 @@ void handlePreprocessor(AnalysisContext& ctx) {
                 ctx.preproc.state = PreprocState::ErrorConstr;
             }
         }
-        else {
+        else { // далее программу можно масштабировать под другие директивы
             ctx.iminus();
             ctx.preproc.state = PreprocState::InArg;
         }
-        break;
+    break;
+
     case PreprocState::InArg:
-    {
-        bool normSimbol = isgraph(ctx.ch);
-        if (CommentChecker(ctx.ch, ctx.next)) {
-            ctx.iminus();
-            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
-            return;
-        }
+        if (if_comm() == 1) return;
         if (ctx.ch == '\"' && ctx.preproc.type == PreprocStandard::Include) {
             //проверка подключенного файла
             ctx.preproc.state = PreprocState::AfterArg;
@@ -323,14 +330,10 @@ void handlePreprocessor(AnalysisContext& ctx) {
         else {
             ctx.preproc.argum_name += ctx.ch;
         }
-        break;
-    }
+    break;
+
     case PreprocState::AfterArg:
-        if (CommentChecker(ctx.ch, ctx.next)) {
-            ctx.iminus();
-            ctx.state_change(State::Normal); // Переходим в Normal, чтобы он подхватил начало комментария.
-            return;
-        }
+        if (if_comm() == 1) return;
         if (isgraph(ctx.ch)) {
             ctx.addError(err_info::err_type::INVALID_CONSTRUCTION); // После аргумента не должно быть видимых символов Пример #include <file> garbage
             ctx.preproc.state = PreprocState::ErrorConstr;
@@ -341,7 +344,7 @@ void handlePreprocessor(AnalysisContext& ctx) {
         break;
 
     default:
-		ctx.addError(err_info::err_type::UNDEFINE_ERROR); // Ветка по умолчанию, которая не должна срабатывать
+		ctx.addError(err_info::err_type::UNDEFINE_ERROR); // Ветка по умолчанию, которая по идее и не должна срабатывать
         break;
     }
 }

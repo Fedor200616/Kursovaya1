@@ -1,9 +1,14 @@
 ﻿  Analyse.cpp
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(85,26): warning C4838: Преобразование из "unsigned char" в "char" требует сужающего преобразования.
-C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(85,34): warning C4838: Преобразование из "int" в "unsigned int" требует сужающего преобразования.
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(90,26): warning C4838: Преобразование из "unsigned char" в "char" требует сужающего преобразования.
+C:\Users\I\source\repos\Kursovaya1\Analyse.cpp(90,34): warning C4838: Преобразование из "int" в "unsigned int" требует сужающего преобразования.
+  LexerUtils.cpp
+  Main.cpp
+  Reader.cpp
+C:\Users\I\source\repos\Kursovaya1\Reader.cpp(73,23): warning C4018: '<': несоответствие знака и беззнака
+  UserInterface.cpp
   Создание кода
-  1 of 1274 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+  9 of 1276 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   Kursovaya1.vcxproj -> C:\Users\I\source\repos\Kursovaya1\Release\Kursovaya1.exe

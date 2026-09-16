@@ -185,6 +185,11 @@ void handlePreprocessor(AnalysisContext& ctx);
 
 void PreprocChecker(AnalysisContext& ctx);
 
+
+/// <summary>
+/// Находит ошибки в строке с кавычками
+/// </summary>
+/// <param name="ctx">Контекст анализа</param>
 void FindErrorInQuote(AnalysisContext& ctx);
 
 /// <summary>
