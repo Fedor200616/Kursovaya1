@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Kursovaya1\\Release\\xstring.obj",
+            "outputs": [
+                "Kursovaya1\\Release\\xstring.obj.dt.module.json",
+                "Kursovaya1\\Release\\xstring.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

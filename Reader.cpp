@@ -71,10 +71,10 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
 int AnaliseIterator(std::vector<string_info>& info) {
     errors.clear();
     for (int i = 1; i < info.size(); i++) {
-        analyse(info[i - 1], info[i]);
+        analyse(info[i - 1], info[i]); //Отправляем в функцию нашу строку и предыдущую строку для контекста анализа
     }
     if (!info.back().brackets.empty()) {
-        FindEndBrackets(info);
+        FindEndBrackets(info); //после проверки всего файла находим незакрытые скобки
     }
    
     return 0;

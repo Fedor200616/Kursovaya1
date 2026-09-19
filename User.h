@@ -12,17 +12,23 @@
 
 namespace fs = std::filesystem;
 
+/// <summary>
+/// Функция ожидания нажатия любой клавиши пользователем
+/// </summary>
 void wait_key();
 
+/// <summary>
+/// тип открытия окна меню изменения
+/// </summary>
 enum class CommInfoType {
     Percent,
     Interval
 };
 
 struct Settings {
-    fs::path filepath = "";
+    fs::path filepath = ""; //Путь к файлу
 
-    int ref_percent = 10;
+    int ref_percent = 10; 
     int ref_interval = 20;
 
 
@@ -62,6 +68,7 @@ enum class ChangeMenuAction {
     Enter,
     Cancel
 };
+
 
 class ChangeMenuLogic : public MenuLogic {
 public:
@@ -251,13 +258,16 @@ public:
     }
 };
 
-
+/// <summary>
+/// Отображает результаты анализа файла и предоставляет меню их просмотра
+/// </summary>
+/// <param name="fileLines">Информация о строках проверяемого файла</param>
+/// <param name="errorInfo">Список обнаруженных ошибок</param>
+/// <param name="filepath">Путь к проверяемому файлу</param>
 void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const fs::path& filepath);
 
 
 /// <summary>
-/// Использовать Функцию после обработки всех клавиш
+/// Изменения параметра меню (например процента в ChangeMenu)
 /// </summary>
-/// <param name="num"></param>
-/// <param name="type"></param>
 void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_type);

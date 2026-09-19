@@ -10,7 +10,7 @@ int print_error(const std::vector<err_info>& errors) {
 		
 		std::cout << "Позиция {" << err.position.line << ", " << err.position.num
 			<< "}, Тип ошибки: " << err.message(err.type) << ", символ: " << err.symbol << ", строка:" << '\n'
-			<< delete_tab(fileLines[err.position.line].str) << '\n';
+			<< delete_tab(fileLines[err.position.line].str) << '\n'; //пишем фрагмент кода без отсупа
 
 		int caret_pos = err.position.num - offset(fileLines[err.position.line].str);
 		if (caret_pos < 0) caret_pos = 0; // Защита от вылета
@@ -34,7 +34,7 @@ std::string CommPercentPrintString(const std::vector<comm_percent>& comm_vec, in
 
 int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_size, int fileinfosize) {
 	system("cls");
-	std::cout << CommPercentPrintString(comm_vec, interval_size, fileinfosize);
+	std::cout << CommPercentPrintString(comm_vec, interval_size, fileinfosize); //Общая функция формирования строки вывода
 	std::cout << "Для продолжения нажмите любую кнопку.";
 	wait_key();
 	return 0;
@@ -42,7 +42,7 @@ int CommPercentPrint(const std::vector<comm_percent>& comm_vec, int interval_siz
 
 std::string delete_tab(const std::string& s) {
 	size_t first = s.find_first_not_of(" \t"); //Находим сивол который не пробел и не таб
-	if (first == std::string::npos)
+	if (first == std::string::npos) //кроме пробелов и таба ничего не нашли
 		return "";
 	else
 		return s.substr(first);
@@ -69,7 +69,7 @@ void ExportError(const std::vector<err_info>& errorInfo, const std::vector<comm_
 	std::cout << "Путь к файлу отчета: " << reportPath.string() << '\n';
 
 	if (!outFile.is_open()) {
-		std::cerr << "Error opening file for writing: " << path.stem().string() + "_errors.txt" << std::endl;
+		std::cerr << "Ошибка открытия файла для изменения: " << path.stem().string() + "_errors.txt" << std::endl;
 		std::cout << "Нажмите любую кнопку чтобы продолжить\n";
 		int key = _getch();
 		return;

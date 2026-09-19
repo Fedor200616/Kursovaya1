@@ -9,6 +9,9 @@
 #ifndef ANALYSE_H
 #define ANALYSE_H
 
+/// <summary>
+/// Структура информации об анализируемом числе
+/// </summary>
 struct NumberParam
 {
     enum class type {
@@ -30,6 +33,9 @@ struct NumberParam
     }
 };
 
+/// <summary>
+/// Информация о скобках в строке
+/// </summary>
 struct QuoteInfo {
     unsigned char quote_char;
     int quote_pos;
@@ -43,7 +49,9 @@ struct QuoteInfo {
     QuoteInfo(unsigned char ch, int p) : quote_char(ch), quote_pos(p), quote_counter(0) {};
 };
 
-
+/// <summary>
+/// Информация о директиве препроцессора
+/// </summary>
 struct Preproc {
     std::string preproc_name;
     PreprocStandard type;
@@ -112,14 +120,17 @@ struct AnalysisContext {
 
     }
 
+    /// <summary>
+    /// обновление контекста
+    /// </summary>
     void refresh()
     {
         ch = str_info.str[i];
         prev = (i > 0) ? str_info.str[i - 1] : '\0';
         next = (i + 1 < static_cast<int>(str_info.str.size())) ? str_info.str[i + 1] : '\0';
-    }
+    } // real prev обновляется в конце цикла отдельно
 
-    // Вспомогательные методы, чтобы не писать длинные пути
+    // Методы записи ошибок
     void addError(err_info::err_type type) {
         errors.emplace_back(pos(str_info.line, i), ch, type);
     }
@@ -129,6 +140,10 @@ struct AnalysisContext {
     void addError(err_info::err_type type, char symbol, int position) {
         errors.emplace_back(pos(str_info.line, position), symbol, type);
     }
+
+    /// <summary>
+    /// обновление real prev
+    /// </summary>
     void real_prev_update() {
         if (index_minus) {
             index_minus = false;
@@ -140,18 +155,17 @@ struct AnalysisContext {
             real_prev = (!isspace(ch)) ? ch : real_prev;
         }
     }
+
     void iminus() {
         i--;
         index_minus = true;
     }
     
-    enum class type_of_change
-    {
-        Nothing,
-    };
-
-
-    void state_change(State newState, type_of_change toc = type_of_change::Nothing) {
+    /// <summary>
+    /// Функция изменения состояния, учитывает предыдущее состояние и изменяет в соответсвии с этим доп параметры
+    /// </summary>
+    /// <param name="newState">новое состояние</param>
+    void state_change(State newState) {
         //Различные функции при переходе между стейтами в зависимости от начального стейта
         if (state == State::InLongComment) {
             real_prev = ' '; // Чтобы не было ложной ошибки при проверке на операторы после комментария (напр. "a * / b")
@@ -183,6 +197,11 @@ void handleQuote(AnalysisContext& ctx);
 
 void handlePreprocessor(AnalysisContext& ctx);
 
+
+/// <summary>
+/// Провекра директивы на ошибки, используется в конце строки
+/// </summary>
+/// <param name="ctx">контекст проверки</param>
 void PreprocChecker(AnalysisContext& ctx);
 
 

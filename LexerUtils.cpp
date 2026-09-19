@@ -1,9 +1,8 @@
 #include "LexerUtils.h"
 #include "Analyse.h"
 
-
 bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char real_prev) {
-    bool hadSpace = (prev != real_prev);
+    bool hadSpace = (prev != real_prev); // оператор разорван пробелом
 
     if (hadSpace) {
 
@@ -13,7 +12,6 @@ bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char r
         if (real_prev == '+' && ch == '+') return 1;
         if (real_prev == '-' && ch == '-') return 1;
         if (real_prev == '-' && ch == '>') return 1;
-        //if (real_prev == '&' && ch == '&') return 1;
         if (real_prev == '|' && ch == '|') return 1;
         if (real_prev == ':' && ch == ':') return 1;
         if (real_prev == '<' && ch == '<') return 1;
@@ -22,7 +20,7 @@ bool binar_oprator_checker(unsigned char ch, unsigned char prev, unsigned char r
         return 0; // В остальных случаях пробел между знаками (напр. "a + -1") допустим
     }
 
-    switch (real_prev) { 
+    switch (real_prev) {  //проверка биинарных операторов
     case '+': if (ch == '+' || ch == '=') return 0; break;
     case '-': if (ch == '-' || ch == '=' || ch == '>') return 0; break;
     case '*': if (ch == '=' || ch == '*' || ch == '>') return 0; break;

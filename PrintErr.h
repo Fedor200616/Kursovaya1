@@ -11,6 +11,9 @@
 #ifndef PRINTERR_H
 #define PRINTERR_H
 
+/// <summary>
+/// Позиция символа в файле
+/// </summary>
 struct pos {
     int line;
     int num;
@@ -19,8 +22,14 @@ struct pos {
 
 };
 
+/// <summary>
+/// Информаци об ошибках
+/// </summary>
 struct err_info
 {
+	/// <summary>
+	/// тип ошибки
+	/// </summary>
 	enum class err_type {
         MISSING_CLOSE_BRACKET,
 		UNCLOSED_BRACKET,
@@ -41,12 +50,16 @@ struct err_info
         OPEN_COMM_IN_COMM
 	};
 
-    pos position;
+    pos position; //позиция ошибки
 
-    char symbol;
-	err_type type;
+    char symbol; //символ
+	err_type type; //обьект типа
 
-
+    /// <summary>
+    /// Вывод на экран в зависимости от типа
+    /// </summary>
+    /// <param name="error"></param>
+    /// <returns></returns>
     static std::string message(err_type error)
     {
         switch (error)
@@ -83,12 +96,21 @@ struct err_info
         }
     }
 
+    /// <summary>
+    /// конструктор информации
+    /// </summary>
+    /// <param name="p">Позиция</param>
+    /// <param name="s">Символ с ошибкой</param>
+    /// <param name="t">Тип</param>
     err_info(pos p, char s, err_type t) : position(p), symbol(s), type(t) {}
 
 };
 
-extern std::vector<err_info> errors;
+extern std::vector<err_info> errors; // Вектор ошибок
 
+/// <summary>
+/// Процент комментов в определенном интервале
+/// </summary>
 struct comm_percent {
     int interval;
     int percent;

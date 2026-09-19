@@ -9,13 +9,13 @@ void show_menu(MenuOut& menu)
 {
     system("cls");
 
-    std::ostringstream buffer;
+    std::ostringstream buffer; // попытки избежать мерцания
 
     if (!menu.PreMenuMessage.empty())
     {
-        buffer << menu.PreMenuMessage;
+        buffer << menu.PreMenuMessage; 
 
-        if (menu.PreMenuMessage.back() != '\n')
+        if (menu.PreMenuMessage.back() != '\n') //чтоб мэсседж был отделен минимум 1 строкой для красоты
             buffer << '\n';
 
         buffer << '\n';
@@ -24,7 +24,7 @@ void show_menu(MenuOut& menu)
     for (size_t i = 0; i < menu.Menu.size(); ++i)
     {
         unsigned char mask =
-            static_cast<unsigned char>(0x80 >> i);
+            static_cast<unsigned char>(0x80 >> i); // проходим циклом по каждому пункту меню, можно ли его отображать
 
         // Пункт скрыт
         if (!(menu.MenuOutParam & mask)) {
@@ -52,7 +52,6 @@ void show_menu(MenuOut& menu)
             buffer << menu.MenuParam[i]();
         }
 
-
         buffer << '\n';
     }
 
@@ -62,7 +61,7 @@ void show_menu(MenuOut& menu)
         buffer << menu.PostMenuMessage;
     }
 
-    std::cout << buffer.str();
+    std::cout << buffer.str(); // вывод собранного меню
 }
 
 
@@ -70,8 +69,7 @@ int menu_navigation(MenuOut& menu, MenuLogic& logic)
 {
     while (true)
     {
-        // Позволяем конкретной логике
-        // обновить состояние меню.
+        // Позволяем конкретной логике обновить состояние меню.
         logic.BeforeShow(menu);
 
 
@@ -86,7 +84,7 @@ int menu_navigation(MenuOut& menu, MenuLogic& logic)
         // Превращаем клавишу в действие
         MenuAction action = logic.GetAction(key_code);
 
-
+        // Анализ действия
         // ESC
         if (action == MenuAction::Exit)
             return -1;
@@ -94,9 +92,10 @@ int menu_navigation(MenuOut& menu, MenuLogic& logic)
         if (action == MenuAction::Select)
             return logic.Select(menu);
         // Стрелки
-        int result = logic.ProcessNavigation(menu, action);
+        int result = logic.ProcessNavigation(menu, action); //функции смены указателя или значения заложены внутри функции
         if (result != 0) {
-            return result;
+            return result; // как правило 0
         }
     }
+    return 0;
 }

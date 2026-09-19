@@ -461,13 +461,14 @@ err_info FindErrUnCloseBrack(const string_info& str_info, const std::vector<stri
 }
 
 void FindEndBrackets(const std::vector<string_info>& info) {
-    if (info.back().brackets.empty())
+    if (info.back().brackets.empty()) //нет лишних скобок
         return;
+
     int line = info.back().line;
     do {
         const string_info& last_str = info[line];
-        errors.emplace_back(FindErrUnCloseBrack(last_str, info));
+        errors.emplace_back(FindErrUnCloseBrack(last_str, info)); //находим открытые но не закрытые конструкции
         line = errors.back().position.line - 1;
 
-    } while (!info[line].brackets.empty());
+    } while (!info[line].brackets.empty()); // повторяем для всех скобок
 }

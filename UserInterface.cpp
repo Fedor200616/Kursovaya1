@@ -15,18 +15,18 @@ void wait_key()
     int key = _getch();
 
     if (key == 224)
-        _getch();
+        _getch(); //если пользователь нажал на стелочки наприммер
 }
 
 int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
     std::string type;
     
-    int *value;
+    int *value; // значение которое изменяем (процент или интервал в зависимости от типа окна)
 
     MenuOut ChangeMenu;
 
     ChangeMenu.Menu = {
-            "",
+            "", //выводится процент
             "Применить изменения",
             "Отменить изменения"
         };
@@ -44,13 +44,14 @@ int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
 
         ChangeMenu.PreMenuMessage = set.interval_dialog;
     }
-    else {
-        std::cerr << "Неверный параметр функции ChangeMenuDialog " + type;
+    else { //вообще вызываться не должно, но все равно, как минимум для безопасности указателя
+        std::cerr << "Неверный параметр функции ChangeMenuDialog";
         return -1;
     }
-    int orig_value = *value;
+    int orig_value = *value; //начальное значение для отката
+
     ChangeMenu.MenuParam = {
-        [&value]() {return "<" + std::to_string(*value) + ">"; },
+        [&value]() {return "<" + std::to_string(*value) + ">"; }, //вычисляет под обновленные value
         []() {return ""; },
         []() {return ""; },
     };
@@ -64,9 +65,10 @@ int ChangeMenuDialog(CommInfoType ChangeType, Settings& set) {
         }
 
         ChangeMenuAction action = static_cast<ChangeMenuAction>(result);
+
         bool is_correct = ChangeType == CommInfoType::Percent ?
-                (*value >= set.PERCENT_RANGE[0] and *value <= set.PERCENT_RANGE[1]) :
-                (*value >= set.INTERVAL_RANGE[0] and *value <= set.INTERVAL_RANGE[1]); //Мы уже проверили что тип точно определен
+                (*value >= set.PERCENT_RANGE[0] and *value <= set.PERCENT_RANGE[1]) :  //Мы уже проверили что тип точно определен
+                (*value >= set.INTERVAL_RANGE[0] and *value <= set.INTERVAL_RANGE[1]); //Поэтому или проценты или интервал
 
         switch (action) {
         case ChangeMenuAction::Enter:
@@ -107,32 +109,32 @@ fs::path SaveFileDialog(const fs::path& filepath) {
         L"_errors.txt";
 
     // Записываем предлагаемое имя
-    // прямо в буфер диалога.
+    // прямо в строку диалогового окна
     wcscpy_s(filename, MAX_PATH, default_name.c_str());
 
     fs::path root = fs::current_path().root_directory();
 
-    OPENFILENAMEW ofn{};
+    OPENFILENAMEW ofn{}; // Структура с параметрами стандартного диалога сохранения Windows
 
-    ofn.lStructSize = sizeof(ofn);
+    ofn.lStructSize = sizeof(ofn); 
     ofn.hwndOwner = nullptr;
-    ofn.lpstrFilter =L"Text Files\0*.txt\0 All Files\0*.*\0";
+    ofn.lpstrFilter =L"Text Files\0*.txt\0 All Files\0*.*\0"; // Фильтры типов файлов в диалоге
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle =
         L"Сохранить файл как";
     ofn.lpstrInitialDir =
         root.c_str();
-    ofn.Flags = OFN_DONTADDTORECENT |
-                OFN_OVERWRITEPROMPT;
+    ofn.Flags = OFN_DONTADDTORECENT | // Не добавлять файл в список последних документов
+                OFN_OVERWRITEPROMPT;  // и запрашивать подтверждение при перезаписи существующего файла
 
     if (GetSaveFileNameW(&ofn)) {
-        while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
+        while (_kbhit()) _getch();  // Очищаем оставшиеся нажатия клавиш от меню
         return fs::path(filename);
     }
     else {
-        while (_kbhit()) _getch();
-        return {};
+        while (_kbhit()) _getch(); 
+        return {};  // Пустой путь означает отмену сохранения
     }
 }
 
@@ -144,7 +146,7 @@ fs::path place_to_save(const fs::path& filepath){
 
     SaveMenu.Menu =
     {
-        "Сохранить в той же папке, что и проверяемый файл",
+        "Сохранить в той же папке, что и проверяемый файл", 
         "Сохранить в папке с программой (exe)",
         "Выбрать папку для сохранения",
         "Вернуться в меню обработки файла"
@@ -162,7 +164,7 @@ fs::path place_to_save(const fs::path& filepath){
 
     int result = menu_navigation(SaveMenu, SaveLogic);
 
-    if (result == -1)
+    if (result == -1) //Esc
         return {};
 
     SaveMenuAction action = static_cast<SaveMenuAction>(result);
@@ -187,9 +189,11 @@ fs::path place_to_save(const fs::path& filepath){
 }
 
 void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<err_info>& errorInfo, const fs::path& filepath){
+   
+    // Рассчитываем интервалы с недостаточным количеством комментариев
     std::vector<comm_percent> intervals = CommPercent(fileLines, setting.ref_percent, setting.ref_interval);
 
-    unsigned char menu_mask = 0x38;
+    unsigned char menu_mask = 0x38; // Маска доступности пунктов меню по умолчанию
 
     std::string before_menu = "Файл: " + filepath.string() + "\n";
 
@@ -198,7 +202,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     }
     else {
         before_menu += "Найдено ошибок: " + std::to_string(errors.size()) + "\n";
-        menu_mask |= 0x80;
+        menu_mask |= 0x80; // Включаем пункт просмотра ошибок
     }
 
     before_menu += "Пороговый процент комментариев: " + std::to_string(setting.ref_percent) + "\n";
@@ -210,7 +214,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     }
     else {
         before_menu += "Есть интервалы, с малым количеством комментариев\n";
-        menu_mask |= 0x40;
+        menu_mask |= 0x40; // Включаем пункт просмотра проблемных интервалов
     }
 
     MenuOut ReturnMenu;
@@ -218,11 +222,11 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     ReturnMenu.PreMenuMessage = before_menu;
 
     ReturnMenu.Menu = {
-        "Показать ошибки",
-        "Показать интервалы с нехваткой комментариев",
-        "Экспортировать результат в файл",
-        "Вернуться в главное меню",
-        "Выйти из программы"
+        "Показать ошибки", // 80
+        "Показать интервалы с нехваткой комментариев", // 40
+        "Экспортировать результат в файл", // 20
+        "Вернуться в главное меню", // 10
+        "Выйти из программы" // 08
     };
 
 
@@ -236,7 +240,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     while (true) {
         int result = menu_navigation(ReturnMenu, ReturnLogic);
 
-        if (result == -1)
+        if (result == -1) //Esv
             return;
 
         ReturnMenuAction action = static_cast<ReturnMenuAction>(result);
@@ -274,6 +278,9 @@ void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_typ
     int *num;
     int diff;
     int range[2];
+
+    // Выбираем параметр, его шаг и допустимый диапазон
+    // в зависимости от типа изменяемого значения
     if (num_type == CommInfoType::Percent) {
         num = &set.ref_percent;
         diff = set.PERCENT_DIFF;
@@ -289,6 +296,7 @@ void ChangeNum(Settings& set, ChangeMenuAction change_type, CommInfoType num_typ
         }
     }
 
+    // Изменяем значение только в пределах допустимого диапазона
     switch (change_type) {
     case ChangeMenuAction::ChangeNumLeft:
         if ((*num - diff) >= range[0] and (*num - diff) <= range[1]) {

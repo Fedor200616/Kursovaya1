@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+/// <summary>
+/// Клавиши, которыми пользуеся клиент
+/// </summary>
 enum class key
 {
     Up = 72,
@@ -20,6 +23,11 @@ enum class key
     Null = 0
 };
 
+/// <summary>
+/// Перевод из числового значения от getch в enum class key
+/// </summary>
+/// <param name="code">код клавиши</param>
+/// <returns></returns>
 inline key int_to_key(int code)
 {
     switch (code)
@@ -37,6 +45,9 @@ inline key int_to_key(int code)
     }
 }
 
+/// <summary>
+/// Основные функции в меню
+/// </summary>
 enum class MenuAction
 {
     None,
@@ -69,7 +80,7 @@ struct MenuOut
     std::vector<std::string> Menu;
 
     // Функции, возвращающие параметры пунктов
-    std::vector<std::function<std::string()>> MenuParam;
+    std::vector<std::function<std::string()>> MenuParam; // Пишем лямбда функции внутрь для вывода чисел и других изменяемых параметров
 
     // Текст после меню
     std::string PostMenuMessage = "";
@@ -154,10 +165,8 @@ public:
 
     // Вызывается перед каждым отображением.
     virtual void BeforeShow(MenuOut& menu){}
-
+    //функции изменяемы в наследниках
 protected:
-
-
     void MoveUp(MenuOut& menu)
     {
         if (menu.Menu.empty())
@@ -172,7 +181,6 @@ protected:
 
         } while (!(menu.ActIndex & menu.MenuOutParam));
     }
-
 
     void MoveDown(MenuOut& menu)
     {
@@ -189,7 +197,6 @@ protected:
         } while (!(menu.ActIndex & menu.MenuOutParam));
     }
 
-
     virtual int ChangeLeft(MenuOut&)
     {
         return 0;
@@ -200,9 +207,13 @@ protected:
         return 0;
     }
 
-
 private:
 
+    /// <summary>
+    /// Определяет, какой бит соответствует последнему пункту меню
+    /// </summary>
+    /// <param name="menu">Меню</param>
+    /// <returns>Битовая маска последнего пункта или 0 для пустого меню</returns>
     unsigned char GetLastBit(const MenuOut& menu) const
     {
         if (menu.Menu.empty())
@@ -214,7 +225,17 @@ private:
     }
 };
 
+/// <summary>
+/// Отображает меню в консоли
+/// </summary>
+/// <param name="menu">объект меню для отображения</param>
 void show_menu(const MenuOut& menu);
 
-
+/// <summary>
+/// Навигация по меню (от показа меню до выбора пользователем действия)
+/// </summary>
+/// <param name="menu">Обьект меню</param>
+/// <param name="logic">Логика конкретного меню</param>
+/// <returns>-1 для выхода, logic.Select(menu) для enter и, как правило, 0 для остального</returns>
 int menu_navigation(MenuOut& menu, MenuLogic& logic);
+

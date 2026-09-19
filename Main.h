@@ -6,8 +6,7 @@
 #include "Classes.h"
 
 
-//namespace fs = std::filesystem;
-extern std::filesystem::path exe_filepath;
+extern std::filesystem::path exe_filepath; //Путь к exe файлу
 
 struct brack {
 		char bracket;
@@ -40,8 +39,8 @@ struct string_info {
 	PreprocStandard preporcstate = PreprocStandard::NONE;
 };
 
-const string_info empty_str_info{};
+const string_info empty_str_info{}; //обьект информации для нулевой строки, для начала отчета
 
-extern std::vector<string_info> fileLines;
+extern std::vector<string_info> fileLines; //вектор информации о строках
 
 
