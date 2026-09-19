@@ -118,7 +118,7 @@ fs::path SaveFileDialog(const fs::path& filepath) {
 
     ofn.lStructSize = sizeof(ofn); 
     ofn.hwndOwner = nullptr;
-    ofn.lpstrFilter =L"Text Files\0*.txt\0 All Files\0*.*\0"; // Фильтры типов файлов в диалоге
+    ofn.lpstrFilter =L"Text Files\0*.txt\0"; // Фильтры типов файлов в диалоге
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle =
@@ -129,8 +129,22 @@ fs::path SaveFileDialog(const fs::path& filepath) {
                 OFN_OVERWRITEPROMPT;  // и запрашивать подтверждение при перезаписи существующего файла
 
     if (GetSaveFileNameW(&ofn)) {
-        while (_kbhit()) _getch();  // Очищаем оставшиеся нажатия клавиш от меню
-        return fs::path(filename);
+        fs::path selected(filename);
+        auto ext = selected.extension().string();
+        // Приводим расширение к нижнему регистру для универсальности
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext == ".txt") {
+            std::wcout << L"Вы сохраняете файл \"" << filename << L"\"\n";
+            while (_kbhit()) _getch(); //Обнуляем ввод клавиш при использовании меню
+            return selected;
+        }
+        else {
+            system("cls");
+            std::cout << "Ошибка: выберите файл с расширением .txt\n";
+            std::cout << "Нажмите любую кнопку чтобы продолжить\n";
+            wait_key();
+            return fs::path{};
+        }
     }
     else {
         while (_kbhit()) _getch(); 

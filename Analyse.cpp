@@ -281,7 +281,7 @@ void handlePreprocessor(AnalysisContext& ctx) {
         }
         else {
             if (!isspace(ctx.ch)) {
-                ctx.addError(err_info::err_type::INVALID_CHARACTER); // #include например
+                ctx.addError(err_info::err_type::INVALID_CHARACTER); // # include например
                 ctx.preproc.state = PreprocState::ErrorConstr; //если есть ошибка то смысла проверять нет, только накапливать ошибки
             }
         }

@@ -31,17 +31,14 @@ struct err_info
 	/// тип ошибки
 	/// </summary>
 	enum class err_type {
-        MISSING_CLOSE_BRACKET,
-		UNCLOSED_BRACKET,
-		UNCLOSED_QUOTE,
+		UNCLOSED_BRACKET,//
+		UNCLOSED_QUOTE, //
 		UNCLOSED_LONG_COMMENT,
-		NOT_EOS,
-        CLOSE_BRAKET_FIRST,
-        FILE_IS_EMPTY,
+        CLOSE_BRAKET_FIRST, //
         UNDEFINE_ERROR,
-        INVALID_CHARACTER,
-        EMPTY_CHAR_QUOTE,
-        TOO_LONG_CHAR_QUOTE,
+        INVALID_CHARACTER, //
+        EMPTY_CHAR_QUOTE, //
+        TOO_LONG_CHAR_QUOTE, //
         INVALID_CONSTRUCTION,
         INVALID_PREPROCESSOR_DIRECTIVE,
         UNNECESSARY_POINT,
@@ -64,7 +61,6 @@ struct err_info
     {
         switch (error)
         {
-        case err_type::MISSING_CLOSE_BRACKET:
         case err_type::UNCLOSED_BRACKET:
             return "Найдена незакрытая скобка";
         case err_type::UNCLOSED_QUOTE:
