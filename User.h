@@ -225,7 +225,6 @@ enum class ReturnMenuAction {
     OpenComms,
     SaveResult,
 
-    ExitToMain,
     ExitToDesktop
 };
 
@@ -247,9 +246,6 @@ public:
             return static_cast<int>(ReturnMenuAction::SaveResult);
 
         case 0x10:
-            return static_cast<int>(ReturnMenuAction::ExitToMain);
-
-        case 0x08:
             return static_cast<int>(ReturnMenuAction::ExitToDesktop);
 
         default:

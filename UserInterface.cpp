@@ -172,14 +172,11 @@ fs::path place_to_save(const fs::path& filepath){
 		"Примечание: при выборе 1-го и 2-го пунктов меню, имя файла будет сгенерировано как <имя_файла>_errors.txt\n"
 		"При этом, если файл уже существует, он будет перезаписан!\n\n"
         "Используйте стрелки для навигации, "
-        "Enter для выбора, Esc для возврата.\n";
+        "Enter для выбора.\n";
 
     SaveMenuLogic SaveLogic;
 
     int result = menu_navigation(SaveMenu, SaveLogic);
-
-    if (result == -1) //Esc
-        return {};
 
     SaveMenuAction action = static_cast<SaveMenuAction>(result);
 
@@ -207,7 +204,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     // Рассчитываем интервалы с недостаточным количеством комментариев
     std::vector<comm_percent> intervals = CommPercent(fileLines, setting.ref_percent, setting.ref_interval);
 
-    unsigned char menu_mask = 0x38; // Маска доступности пунктов меню по умолчанию
+    unsigned char menu_mask = 0x30; // Маска доступности пунктов меню по умолчанию
 
     std::string before_menu = "Файл: " + filepath.string() + "\n";
 
@@ -239,8 +236,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
         "Показать ошибки", // 80
         "Показать интервалы с нехваткой комментариев", // 40
         "Экспортировать результат в файл", // 20
-        "Вернуться в главное меню", // 10
-        "Выйти из программы" // 08
+        "Выйти из программы" // 10
     };
 
 
@@ -254,7 +250,7 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
     while (true) {
         int result = menu_navigation(ReturnMenu, ReturnLogic);
 
-        if (result == -1) //Esv
+        if (result == -1) //Esc
             return;
 
         ReturnMenuAction action = static_cast<ReturnMenuAction>(result);
@@ -274,9 +270,6 @@ void ReturnResult(const std::vector<string_info>& fileLines, const std::vector<e
             system("cls");
             ExportError(errorInfo, intervals, filepath);
             break;
-
-        case ReturnMenuAction::ExitToMain:
-            return;
 
         case ReturnMenuAction::ExitToDesktop:
             std::exit(0);
