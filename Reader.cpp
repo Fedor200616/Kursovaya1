@@ -53,7 +53,7 @@ std::vector<string_info> CopyStringFromFile(const fs::path& filePath) { //Постро
     std::vector<string_info> results;
     std::ifstream ofile(filePath);
     if (!ofile.is_open()) {
-        std::cerr << "Error opening file: " << filePath << std::endl; //TODO выводить ошибку через отдельную функцию
+        std::cerr << "Ошибка при открытии файла: " << filePath << std::endl; //TODO выводить ошибку через отдельную функцию
         return results; // Возвращаем пустой вектор в случае ошибки
     }
 
